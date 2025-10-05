@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - CSVTS</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Join as Volunteer</h1>
+                <p>Create your account to start volunteering</p>
+            </div>
+            
+            <div th:if="${error}" class="alert alert-error">
+                <span th:text="${error}"></span>
+            </div>
+            
+            <form th:action="@{/register}" method="post" th:object="${volunteer}" class="auth-form">
+                <div class="form-group">
+                    <label for="username">Username *</label>
+                    <input type="text" id="username" th:field="*{username}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" th:field="*{passwordHash}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" th:field="*{firstName}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" th:field="*{lastName}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" th:field="*{email}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" th:field="*{phone}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="skills">Skills</label>
+                    <input type="text" id="skills" th:field="*{skills}" placeholder="e.g., Teaching, First Aid, Cooking">
+                </div>
+                
+                <div class="form-group">
+                    <label for="availability">Availability</label>
+                    <input type="text" id="availability" th:field="*{availability}" placeholder="e.g., Weekends, Evenings, Weekdays">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">Register</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <a th:href="@{/login}">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
