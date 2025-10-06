@@ -14,6 +14,10 @@
         .task-status-open { border-left: 4px solid #28a745; }
         .task-status-inprogress { border-left: 4px solid #ffc107; }
         .task-status-completed { border-left: 4px solid #007bff; }
+        .sidebar { background-color: #f8f9fa; min-height: calc(100vh - 56px); padding-top: 20px; }
+        .sidebar .nav-link { color: #333; padding: 10px 15px; }
+        .sidebar .nav-link:hover { background-color: #e9ecef; }
+        .sidebar .nav-link.active { background-color: #007bff; color: white; }
     </style>
 </head>
 <body>
@@ -30,11 +34,34 @@
         </div>
     </nav>
 
-    <div class="container-fluid mt-4">
-        <div class="row justify-content-center">
-            <div class="col-11">
-                <!-- Header -->
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/tasks/volunteer">
+                                <i class="fas fa-tasks"></i> My Tasks
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/volunteer/profile">
+                                <i class="fas fa-user"></i> My Profile
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2"><i class="fas fa-tachometer-alt"></i> My Dashboard</h1>
                     <div th:if="${volunteer}" class="btn-group">
                         <span class="btn btn-outline-secondary" th:text="'Hello, ' + ${volunteer.firstName} + '!'"></span>
@@ -105,13 +132,13 @@
                         </div>
                     </div>
 
-                    <!-- Active Tasks Section -->
+                    <!-- Active Tasks -->
                     <div class="row">
                         <div class="col-md-8">
                             <div class="card">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h5 class="card-title mb-0">
-                                        <i class="fas fa-list-alt"></i> My Active Tasks
+                                        <i class="fas fa-list-alt"></i> My Assigned Tasks
                                     </h5>
                                     <a th:href="@{/tasks/volunteer}" class="btn btn-sm btn-outline-primary">View All Tasks</a>
                                 </div>
@@ -119,14 +146,14 @@
                                     <div th:if="${assignedTasks != null and !assignedTasks.empty}">
                                         <div class="list-group">
                                             <div th:each="task : ${assignedTasks}" 
-                                                 th:classappend="${task.status == 'OPEN'} ? 'task-status-open list-group-item' : 
-                                                                ${task.status == 'IN_PROGRESS'} ? 'task-status-inprogress list-group-item' : 
-                                                                'task-status-completed list-group-item'"
-                                                 class="list-group-item mb-2">
+                                                 class="list-group-item mb-2"
+                                                 th:classappend="${task.status == 'OPEN'} ? 'task-status-open' : 
+                                                                ${task.status == 'IN_PROGRESS'} ? 'task-status-inprogress' : 
+                                                                'task-status-completed'}">
                                                 <div class="d-flex w-100 justify-content-between align-items-start">
                                                     <div class="flex-grow-1">
                                                         <h6 class="mb-1" th:text="${task.title}">Task Title</h6>
-                                                        <p class="mb-1" th:text="${task.description} ?: 'No description provided'">Description</p>
+                                                        <p class="mb-1" th:text="${task.description ?: 'No description provided'}">Description</p>
                                                         
                                                         <div class="row mt-2">
                                                             <div class="col-md-4">
@@ -143,7 +170,7 @@
                                                                 <small class="text-muted">
                                                                     <strong>Due Date:</strong>
                                                                     <span th:if="${task.dueDate}" th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">Due Date</span>
-                                                                    <span th:unless="${task.dueDate}" class="text-muted">Not set</span>
+                                                                    <span th:unless="${task.dueDate}">Not set</span>
                                                                 </small>
                                                             </div>
                                                             <div class="col-md-4">
@@ -166,7 +193,7 @@
                                                                 <i class="fas fa-check"></i> Complete
                                                             </button>
                                                         </form>
-                                                        <span th:if="${task.status == 'COMPLETED'}" class="badge bg-success">Completed</span>
+                                                        <span th:if="${task.status == 'COMPLETED'}" class="badge bg-success p-2">Completed</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -196,7 +223,7 @@
                                 <div class="card-body">
                                     <div class="text-center mb-3">
                                         <i class="fas fa-user-circle fa-4x text-muted"></i>
-                                        <h5 th:text="${volunteer.firstName} + ' ' + ${volunteer.lastName}">Volunteer Name</h5>
+                                        <h5 th:text="${volunteer.firstName + ' ' + volunteer.lastName}">Volunteer Name</h5>
                                         <p class="text-muted" th:text="${volunteer.email}">email@example.com</p>
                                     </div>
                                     <div class="d-grid gap-2">
@@ -246,7 +273,7 @@
                     <p class="text-muted">Please contact the administrator to set up your volunteer profile.</p>
                     <a th:href="@{/logout}" class="btn btn-primary">Logout</a>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 

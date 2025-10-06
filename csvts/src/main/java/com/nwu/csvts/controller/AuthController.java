@@ -1,5 +1,7 @@
 package com.nwu.csvts.controller;
 
+import com.nwu.csvts.model.Assignment;
+import com.nwu.csvts.model.Task;
 import com.nwu.csvts.model.User;
 import com.nwu.csvts.model.Volunteer;
 import com.nwu.csvts.service.UserService;
@@ -12,6 +14,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -155,30 +159,35 @@ public class AuthController {
             
             return "admin/dashboard";
         } else {
-            // Volunteer dashboard with assigned tasks
-            // FIXED: Use VolunteerService instead of user.getVolunteer()
+            // Volunteer dashboard
             Optional<Volunteer> volunteer = volunteerService.getVolunteerByUser(user);
-            if (volunteer.isPresent()) {
-                List<com.nwu.csvts.model.Task> assignedTasks = taskService.getTasksAssignedToVolunteer(volunteer.get().getVolunteerId());
-                List<com.nwu.csvts.model.Assignment> activeAssignments = assignmentService.getActiveAssignmentsByVolunteer(volunteer.get());
-                List<com.nwu.csvts.model.Assignment> completedAssignments = assignmentService.getCompletedAssignmentsByVolunteer(volunteer.get());
-                
-                model.addAttribute("volunteer", volunteer.get());
-                model.addAttribute("assignedTasks", assignedTasks);
-                model.addAttribute("activeAssignments", activeAssignments);
-                model.addAttribute("completedAssignments", completedAssignments);
-                model.addAttribute("totalAssignments", activeAssignments.size() + completedAssignments.size());
-                
-                // Calculate completion rate
-                double completionRate = 0.0;
-                if (!assignedTasks.isEmpty()) {
-                    completionRate = (double) completedAssignments.size() / assignedTasks.size() * 100;
-                }
-                model.addAttribute("completionRate", Math.round(completionRate));
-            } else {
-                model.addAttribute("error", "Volunteer profile not found. Please contact administrator.");
-            }
-            return "volunteer/dashboard";
+    
+        if (volunteer.isPresent()) {
+            Volunteer vol = volunteer.get();
+        
+            // Get assigned tasks
+            List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(vol.getVolunteerId());
+        
+            // For now, use empty lists for assignments (we'll implement these later)
+            List<Assignment> activeAssignments = new ArrayList<>();
+            List<Assignment> completedAssignments = new ArrayList<>();
+        
+            // Calculate completion rate
+            long completedCount = assignedTasks.stream()
+                    .filter(task -> "COMPLETED".equals(task.getStatus()))
+                    .count();
+            double completionRate = assignedTasks.isEmpty() ? 0.0 : (double) completedCount / assignedTasks.size() * 100;
+        
+            model.addAttribute("volunteer", vol);
+            model.addAttribute("assignedTasks", assignedTasks);
+            model.addAttribute("activeAssignments", activeAssignments);
+            model.addAttribute("completedAssignments", completedAssignments);
+            model.addAttribute("totalAssignments", assignedTasks.size());
+            model.addAttribute("completionRate", Math.round(completionRate));
+        } else {
+            model.addAttribute("error", "Volunteer profile not found. Please contact administrator.");
+        }
+        return "volunteer/dashboard";
         }
     }
 }

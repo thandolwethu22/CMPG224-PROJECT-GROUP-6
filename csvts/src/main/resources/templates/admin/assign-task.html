@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="layout :: html">
+<head>
+    <title>Assign Volunteer</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2"><i class="fas fa-user-plus"></i> Assign Volunteer to Task</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a th:href="@{/tasks/admin/{id}(id=${task.taskId})}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Task
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Assign Volunteer</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Task Info -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h6>Task Details:</h6>
+                                <p><strong>Title:</strong> <span th:text="${task.title}">Task Title</span></p>
+                                <p><strong>Description:</strong> <span th:text="${task.description ?: 'No description'}">Description</span></p>
+                                <p><strong>Status:</strong> <span th:text="${task.status}">Status</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Assign Form -->
+                        <form th:action="@{/assignments/admin/assign}" method="post">
+                            <input type="hidden" name="taskId" th:value="${task.taskId}">
+                            
+                            <div class="mb-3">
+                                <label for="volunteerId" class="form-label">Select Volunteer *</label>
+                                <select class="form-select" id="volunteerId" name="volunteerId" required>
+                                    <option value="">Choose a volunteer...</option>
+                                    <option th:each="volunteer : ${volunteers}" 
+                                            th:value="${volunteer.volunteerId}"
+                                            th:text="${volunteer.firstName + ' ' + volunteer.lastName + ' (' + volunteer.email + ')'}">
+                                        Volunteer Name
+                                    </option>
+                                </select>
+                                <div class="form-text">Choose which volunteer to assign this task to.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Assignment Status *</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="ASSIGNED" selected>Assigned</option>
+                                    <option value="IN_PROGRESS">In Progress</option>
+                                </select>
+                                <div class="form-text">Set the initial status for this assignment.</div>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/tasks/admin/{id}(id=${task.taskId})}" class="btn btn-secondary me-md-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-user-plus"></i> Assign Volunteer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-info-circle"></i> Assignment Tips
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled small">
+                            <li class="mb-2"><strong>Skill Matching:</strong> Consider volunteer skills when assigning tasks</li>
+                            <li class="mb-2"><strong>Availability:</strong> Check volunteer availability before assigning</li>
+                            <li class="mb-2"><strong>Clear Instructions:</strong> Ensure task description is clear</li>
+                            <li><strong>Follow Up:</strong> Monitor progress and provide support</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Volunteer Stats -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-users"></i> Available Volunteers
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0"><strong th:text="${volunteers != null ? volunteers.size() : 0}">0</strong> volunteers available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
