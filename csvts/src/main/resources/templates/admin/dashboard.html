@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CSVTS</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Admin Dashboard</h1>
+            <p>Welcome, <span th:text="${username}"></span>! (Role: <span th:text="${role}"></span>)</p>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-primary">Logout</button>
+            </form>
+        </div>
+        
+        <div class="dashboard-content">
+            <h2>Admin Features Coming Soon</h2>
+            <p>Volunteer management, task assignment, and reporting features will be added in the next phase.</p>
+        </div>
+    </div>
+</body>
+</html>

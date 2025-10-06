@@ -4,23 +4,22 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "admins")
-@PrimaryKeyJoinColumn(name = "user_id")
-public class Admin extends User {
+public class Admin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long adminId;
 
     private String name;
 
-    // Constructors
-    public Admin() {
-        super();
-        this.setRole("ADMIN");
-    }
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    public Admin(String username, String passwordHash, String name) {
-        super(username, passwordHash, "ADMIN");
+    public Admin() {}
+
+    public Admin(String name, User user) {
         this.name = name;
+        this.user = user;
     }
 
     // Getters and Setters
@@ -29,4 +28,7 @@ public class Admin extends User {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }

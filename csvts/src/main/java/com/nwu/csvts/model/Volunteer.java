@@ -6,8 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "volunteers")
-@PrimaryKeyJoinColumn(name = "user_id")
-public class Volunteer extends User {
+public class Volunteer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long volunteerId;
@@ -28,18 +27,17 @@ public class Volunteer extends User {
 
     private String availability;
 
-    // Constructors
-    public Volunteer() {
-        super();
-        this.setRole("VOLUNTEER");
-    }
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    public Volunteer(String username, String passwordHash, String firstName, 
-                    String lastName, String email) {
-        super(username, passwordHash, "VOLUNTEER");
+    public Volunteer() {}
+
+    public Volunteer(String firstName, String lastName, String email, User user) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.user = user;
     }
 
     // Getters and Setters
@@ -63,6 +61,9 @@ public class Volunteer extends User {
 
     public String getAvailability() { return availability; }
     public void setAvailability(String availability) { this.availability = availability; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
     public String getFullName() {
         return firstName + " " + lastName;

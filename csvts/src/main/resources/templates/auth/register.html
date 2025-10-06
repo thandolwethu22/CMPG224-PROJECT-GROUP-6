@@ -18,45 +18,45 @@
                 <span th:text="${error}"></span>
             </div>
             
-            <form th:action="@{/register}" method="post" th:object="${volunteer}" class="auth-form">
+            <form th:action="@{/register}" method="post" class="auth-form">
                 <div class="form-group">
                     <label for="username">Username *</label>
-                    <input type="text" id="username" th:field="*{username}" required>
+                    <input type="text" id="username" name="username" th:value="${param.username}" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="password">Password *</label>
-                    <input type="password" id="password" th:field="*{passwordHash}" required>
+                    <input type="password" id="password" name="password" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="firstName">First Name *</label>
-                    <input type="text" id="firstName" th:field="*{firstName}" required>
+                    <input type="text" id="firstName" name="firstName" th:value="${volunteer?.firstName}" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="lastName">Last Name *</label>
-                    <input type="text" id="lastName" th:field="*{lastName}" required>
+                    <input type="text" id="lastName" name="lastName" th:value="${volunteer?.lastName}" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="email">Email *</label>
-                    <input type="email" id="email" th:field="*{email}" required>
+                    <input type="email" id="email" name="email" th:value="${volunteer?.email}" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="phone">Phone</label>
-                    <input type="tel" id="phone" th:field="*{phone}">
+                    <input type="tel" id="phone" name="phone" th:value="${volunteer?.phone}" placeholder="123-456-7890">
                 </div>
                 
                 <div class="form-group">
                     <label for="skills">Skills</label>
-                    <input type="text" id="skills" th:field="*{skills}" placeholder="e.g., Teaching, First Aid, Cooking">
+                    <input type="text" id="skills" name="skills" th:value="${volunteer?.skills}" placeholder="e.g., Teaching, First Aid, Cooking">
                 </div>
                 
                 <div class="form-group">
                     <label for="availability">Availability</label>
-                    <input type="text" id="availability" th:field="*{availability}" placeholder="e.g., Weekends, Evenings, Weekdays">
+                    <input type="text" id="availability" name="availability" th:value="${volunteer?.availability}" placeholder="e.g., Weekends, Evenings, Weekdays">
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-full">Register</button>

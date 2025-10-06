@@ -1,9 +1,11 @@
 package com.nwu.csvts.controller;
 
+import com.nwu.csvts.model.User;
 import com.nwu.csvts.model.Volunteer;
 import com.nwu.csvts.service.UserService;
 import com.nwu.csvts.service.VolunteerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,12 +24,16 @@ public class AuthController {
     @GetMapping("/login")
     public String showLoginForm(@RequestParam(value = "error", required = false) String error,
                                @RequestParam(value = "logout", required = false) String logout,
+                               @RequestParam(value = "registered", required = false) String registered,
                                Model model) {
         if (error != null) {
             model.addAttribute("error", "Invalid username or password!");
         }
         if (logout != null) {
             model.addAttribute("message", "You have been logged out successfully.");
+        }
+        if (registered != null) {
+            model.addAttribute("success", "Registration successful! Please login.");
         }
         return "auth/login";
     }
@@ -39,27 +45,64 @@ public class AuthController {
     }
     
     @PostMapping("/register")
-    public String registerVolunteer(Volunteer volunteer, Model model) {
+    public String registerVolunteer(@RequestParam String username,
+                                   @RequestParam String password,
+                                   @RequestParam String firstName,
+                                   @RequestParam String lastName,
+                                   @RequestParam String email,
+                                   @RequestParam(required = false) String phone,
+                                   @RequestParam(required = false) String skills,
+                                   @RequestParam(required = false) String availability,
+                                   Model model) {
         try {
-            // Check if username already exists
-            if (userService.usernameExists(volunteer.getUsername())) {
+            if (userService.usernameExists(username)) {
                 model.addAttribute("error", "Username already exists!");
+                Volunteer volunteer = new Volunteer();
+                volunteer.setFirstName(firstName);
+                volunteer.setLastName(lastName);
+                volunteer.setEmail(email);
+                volunteer.setPhone(phone);
+                volunteer.setSkills(skills);
+                volunteer.setAvailability(availability);
+                model.addAttribute("volunteer", volunteer);
                 return "auth/register";
             }
             
-            // Check if email already exists
-            if (volunteerService.emailExists(volunteer.getEmail())) {
+            if (volunteerService.emailExists(email)) {
                 model.addAttribute("error", "Email already registered!");
+                Volunteer volunteer = new Volunteer();
+                volunteer.setFirstName(firstName);
+                volunteer.setLastName(lastName);
+                volunteer.setEmail(email);
+                volunteer.setPhone(phone);
+                volunteer.setSkills(skills);
+                volunteer.setAvailability(availability);
+                model.addAttribute("volunteer", volunteer);
                 return "auth/register";
             }
             
-            // Save volunteer
-            volunteerService.saveVolunteer(volunteer);
-            model.addAttribute("success", "Registration successful! Please login.");
-            return "auth/login";
+            Volunteer volunteer = new Volunteer();
+            volunteer.setFirstName(firstName);
+            volunteer.setLastName(lastName);
+            volunteer.setEmail(email);
+            volunteer.setPhone(phone);
+            volunteer.setSkills(skills);
+            volunteer.setAvailability(availability);
+            
+            volunteerService.registerNewVolunteer(volunteer, username, password);
+            
+            return "redirect:/login?registered=true";
             
         } catch (Exception e) {
             model.addAttribute("error", "Registration failed: " + e.getMessage());
+            Volunteer volunteer = new Volunteer();
+            volunteer.setFirstName(firstName);
+            volunteer.setLastName(lastName);
+            volunteer.setEmail(email);
+            volunteer.setPhone(phone);
+            volunteer.setSkills(skills);
+            volunteer.setAvailability(availability);
+            model.addAttribute("volunteer", volunteer);
             return "auth/register";
         }
     }
@@ -67,5 +110,25 @@ public class AuthController {
     @GetMapping("/")
     public String home() {
         return "redirect:/login";
+    }
+    
+    @GetMapping("/dashboard")
+    public String showDashboard(Authentication authentication, Model model) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        
+        String username = authentication.getName();
+        User user = userService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        model.addAttribute("username", username);
+        model.addAttribute("role", user.getRole());
+        
+        if ("ADMIN".equals(user.getRole())) {
+            return "admin/dashboard";
+        } else {
+            return "volunteer/dashboard";
+        }
     }
 }

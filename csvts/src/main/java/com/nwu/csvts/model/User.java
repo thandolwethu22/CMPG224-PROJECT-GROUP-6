@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
-@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,11 +23,10 @@ public class User {
 
     @NotBlank(message = "Role is required")
     @Column(nullable = false)
-    private String role; // "VOLUNTEER" or "ADMIN"
+    private String role;
 
     private LocalDateTime createdAt;
 
-    // Constructors
     public User() {
         this.createdAt = LocalDateTime.now();
     }

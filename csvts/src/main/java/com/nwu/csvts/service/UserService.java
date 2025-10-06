@@ -25,14 +25,9 @@ public class UserService {
     }
     
     public User save(User user) {
-        // Hash password before saving
         if (user.getPasswordHash() != null && !user.getPasswordHash().startsWith("$2a$")) {
             user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
         }
         return userRepository.save(user);
-    }
-    
-    public boolean verifyPassword(String rawPassword, String encodedPassword) {
-        return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 }
