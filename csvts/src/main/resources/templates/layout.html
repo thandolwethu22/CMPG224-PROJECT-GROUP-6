@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - CSVTS'">CSVTS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand { font-weight: bold; }
+        .card { margin-bottom: 1rem; }
+        .stats-card { background: linear-gradient(45deg, #667eea 0%, #764ba2 100%); color: white; }
+        .stats-card h2 { font-size: 2.5rem; margin: 0; }
+        .sidebar { background-color: #f8f9fa; min-height: calc(100vh - 56px); }
+        .task-status-open { border-left: 4px solid #28a745; }
+        .task-status-inprogress { border-left: 4px solid #ffc107; }
+        .task-status-completed { border-left: 4px solid #007bff; }
+        .completion-rate { font-size: 2rem; font-weight: bold; color: #28a745; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/dashboard}">
+                <i class="fas fa-hands-helping"></i> CSVTS
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" th:text="'Welcome, ' + ${username}">Welcome</span>
+                <a class="nav-link" th:href="@{/logout}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" th:if="${role == 'ADMIN'}">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" th:href="@{/dashboard}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/tasks/admin}">
+                                <i class="fas fa-tasks"></i> Manage Tasks
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/tasks/admin/create}">
+                                <i class="fas fa-plus-circle"></i> Create Task
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Volunteer Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" th:if="${role == 'VOLUNTEER'}">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" th:href="@{/dashboard}">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/tasks/volunteer}">
+                                <i class="fas fa-tasks"></i> My Tasks
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/volunteer/profile}">
+                                <i class="fas fa-user"></i> My Profile
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4" th:classappend="${role == 'ADMIN' ? 'col-md-9 ms-sm-auto col-lg-10' : 'col-12'}">
+                <!-- Flash Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Page Content -->
+                <div th:insert="${content}"></div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

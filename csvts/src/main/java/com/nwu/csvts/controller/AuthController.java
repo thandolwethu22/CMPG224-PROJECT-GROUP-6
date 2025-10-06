@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.Optional;
 
+
 @Controller
 public class AuthController {
     
@@ -22,8 +23,8 @@ public class AuthController {
     private final VolunteerService volunteerService;
     private final TaskService taskService;
     private final AssignmentService assignmentService;
-    
-    public AuthController(UserService userService, 
+
+    public AuthController(UserService userService,
                          VolunteerService volunteerService,
                          TaskService taskService,
                          AssignmentService assignmentService) {
