@@ -1,8 +1,10 @@
-// Task.java
 package com.nwu.csvts.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tasks")
@@ -29,11 +31,15 @@ public class Task {
     private User createdBy;
 
     @Column(name = "created_at")
-    private java.time.LocalDateTime createdAt;
+    private LocalDateTime createdAt;
+
+    // ADD THIS MISSING FIELD:
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Assignment> assignments = new ArrayList<>();
 
     // Constructors
     public Task() {
-        this.createdAt = java.time.LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 
     public Task(String title, String description, String status, LocalDate dueDate, User createdBy) {
@@ -67,6 +73,29 @@ public class Task {
     public User getCreatedBy() { return createdBy; }
     public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
 
-    public java.time.LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    // ADD GETTER FOR ASSIGNMENTS:
+    public List<Assignment> getAssignments() { return assignments; }
+    public void setAssignments(List<Assignment> assignments) { this.assignments = assignments; }
+
+    // ADD THESE MISSING METHODS:
+    public void addAssignment(Assignment assignment) {
+        this.assignments.add(assignment);
+        assignment.setTask(this);
+    }
+
+    public void removeAssignment(Assignment assignment) {
+        this.assignments.remove(assignment);
+        assignment.setTask(null);
+    }
+
+    public boolean isOverdue() {
+        return dueDate != null && dueDate.isBefore(LocalDate.now()) && !"COMPLETED".equals(status);
+    }
+
+    public boolean canBeAssigned() {
+        return "OPEN".equals(status) || "IN_PROGRESS".equals(status);
+    }
 }

@@ -4,6 +4,7 @@ import com.nwu.csvts.model.Volunteer;
 import com.nwu.csvts.model.User;
 import com.nwu.csvts.repository.VolunteerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,30 @@ import java.util.Optional;
 public class VolunteerService {
     
     private final VolunteerRepository volunteerRepository;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
     
     @Autowired
-    public VolunteerService(VolunteerRepository volunteerRepository) {
+    public VolunteerService(VolunteerRepository volunteerRepository, 
+                          UserService userService,
+                          PasswordEncoder passwordEncoder) {
         this.volunteerRepository = volunteerRepository;
+        this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
+    }
+    
+    // ADD THIS MISSING METHOD:
+    public void registerNewVolunteer(Volunteer volunteer, String username, String password) {
+        // Create user account
+        User user = new User(username, password, "VOLUNTEER");
+        User savedUser = userService.save(user);
+        
+        // Create volunteer profile and link to user
+        volunteer.setUser(savedUser);
+        volunteerRepository.save(volunteer);
+        
+        // Set bidirectional relationship
+        savedUser.setVolunteer(volunteer);
     }
     
     // Existing methods

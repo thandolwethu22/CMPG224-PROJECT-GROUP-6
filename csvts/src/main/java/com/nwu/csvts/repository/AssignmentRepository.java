@@ -1,4 +1,3 @@
-// AssignmentRepository.java
 package com.nwu.csvts.repository;
 
 import com.nwu.csvts.model.Assignment;
@@ -32,4 +31,10 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     
     // Check if a volunteer is already assigned to a task
     boolean existsByVolunteerAndTask(Volunteer volunteer, Task task);
+    
+    // ADD THESE MISSING METHODS:
+    long countByVolunteerAndStatus(Volunteer volunteer, String status);
+    
+    @Query("SELECT a FROM Assignment a WHERE a.task.dueDate < CURRENT_DATE AND a.status != 'COMPLETED'")
+    List<Assignment> findOverdueAssignments();
 }

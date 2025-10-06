@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Entity
 @Table(name = "users")
@@ -26,6 +27,9 @@ public class User {
     private String role;
 
     private LocalDateTime createdAt;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Volunteer volunteer;
 
     public User() {
         this.createdAt = LocalDateTime.now();
@@ -53,4 +57,12 @@ public class User {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Optional<Volunteer> getVolunteer() {
+        return Optional.ofNullable(volunteer);
+    }
+
+    public void setVolunteer(Volunteer volunteer) {
+        this.volunteer = volunteer;
+    }
 }

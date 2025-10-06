@@ -1,4 +1,3 @@
-// Assignment.java
 package com.nwu.csvts.model;
 
 import jakarta.persistence.*;
@@ -24,6 +23,8 @@ public class Assignment {
 
     @Column(name = "assigned_at", nullable = false)
     private LocalDateTime assignedAt;
+
+    private LocalDateTime completedAt;
 
     // Constructors
     public Assignment() {
@@ -52,4 +53,27 @@ public class Assignment {
 
     public LocalDateTime getAssignedAt() { return assignedAt; }
     public void setAssignedAt(LocalDateTime assignedAt) { this.assignedAt = assignedAt; }
+
+    public LocalDateTime getCompletedAt() { return completedAt; }
+    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
+
+    // ADD THESE MISSING METHODS:
+    public void markAsCompleted() {
+        this.status = "COMPLETED";
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void markAsInProgress() {
+        this.status = "IN_PROGRESS";
+    }
+
+    public boolean isCompleted() {
+        return "COMPLETED".equals(status);
+    }
+
+    public boolean isOverdue() {
+        return task.getDueDate() != null && 
+               task.getDueDate().isBefore(java.time.LocalDate.now()) && 
+               !isCompleted();
+    }
 }
