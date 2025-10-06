@@ -4,7 +4,6 @@ import com.nwu.csvts.model.User;
 import com.nwu.csvts.model.Volunteer;
 import com.nwu.csvts.service.UserService;
 import com.nwu.csvts.service.VolunteerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,11 +14,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class AuthController {
     
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final VolunteerService volunteerService;
     
-    @Autowired
-    private VolunteerService volunteerService;
+    public AuthController(UserService userService, VolunteerService volunteerService) {
+        this.userService = userService;
+        this.volunteerService = volunteerService;
+    }
     
     @GetMapping("/login")
     public String showLoginForm(@RequestParam(value = "error", required = false) String error,
