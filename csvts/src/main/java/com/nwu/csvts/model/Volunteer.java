@@ -3,6 +3,8 @@ package com.nwu.csvts.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "volunteers")
@@ -30,6 +32,9 @@ public class Volunteer {
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Assignment> assignments = new ArrayList<>();
 
     public Volunteer() {}
 
@@ -65,7 +70,36 @@ public class Volunteer {
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
+    public List<Assignment> getAssignments() { return assignments; }
+    public void setAssignments(List<Assignment> assignments) { this.assignments = assignments; }
+
     public String getFullName() {
         return firstName + " " + lastName;
+    }
+
+    // Helper method to add assignment
+    public void addAssignment(Assignment assignment) {
+        assignments.add(assignment);
+        assignment.setVolunteer(this);
+    }
+
+    // Helper method to remove assignment
+    public void removeAssignment(Assignment assignment) {
+        assignments.remove(assignment);
+        assignment.setVolunteer(null);
+    }
+
+    // Helper method to get active assignments
+    public List<Assignment> getActiveAssignments() {
+        return assignments.stream()
+                .filter(assignment -> !"COMPLETED".equals(assignment.getStatus()))
+                .toList();
+    }
+
+    // Helper method to get completed assignments
+    public List<Assignment> getCompletedAssignments() {
+        return assignments.stream()
+                .filter(assignment -> "COMPLETED".equals(assignment.getStatus()))
+                .toList();
     }
 }
