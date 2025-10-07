@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="layout :: html">
+<head>
+    <title>Edit Task</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2"><i class="fas fa-edit"></i> Edit Task</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a th:href="@{/tasks/admin/{id}(id=${task.taskId})}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Task
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Edit Task Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/tasks/admin/{id}/edit(id=${task.taskId})}" th:object="${task}" method="post">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Task Title *</label>
+                                <input type="text" class="form-control" id="title" th:field="*{title}" required>
+                                <div class="form-text">Enter a clear and descriptive title for the task.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" th:field="*{description}" 
+                                          rows="4" placeholder="Provide detailed instructions for this task..."></textarea>
+                                <div class="form-text">Describe what needs to be done, requirements, and any special instructions.</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="status" class="form-label">Status *</label>
+                                        <select class="form-select" id="status" th:field="*{status}" required>
+                                            <option value="OPEN">Open</option>
+                                            <option value="IN_PROGRESS">In Progress</option>
+                                            <option value="COMPLETED">Completed</option>
+                                            <option value="CANCELLED">Cancelled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="dueDate" class="form-label">Due Date</label>
+                                        <input type="date" class="form-control" id="dueDate" th:field="*{dueDate}">
+                                        <div class="form-text">Set a deadline for this task (optional).</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" th:field="*{startDate}">
+                                <div class="form-text">When should work on this task begin? (optional)</div>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/tasks/admin/{id}(id=${task.taskId})}" class="btn btn-secondary me-md-2">Cancel</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Update Task
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-history"></i> Task Information
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Created:</strong> <span th:text="${#temporals.format(task.createdAt, 'MMM dd, yyyy')}">Date</span></p>
+                        <p><strong>Created By:</strong> <span th:text="${task.createdBy.username}">Admin</span></p>
+                        <p th:if="${task.assignments != null}">
+                            <strong>Assigned Volunteers:</strong> 
+                            <span th:text="${task.assignments.size()}">0</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-lightbulb"></i> Editing Tips
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled small">
+                            <li class="mb-2"><strong>Status Updates:</strong> Update status to reflect current progress</li>
+                            <li class="mb-2"><strong>Clear Deadlines:</strong> Set realistic due dates</li>
+                            <li class="mb-2"><strong>Detailed Descriptions:</strong> Keep instructions clear and updated</li>
+                            <li><strong>Communication:</strong> Notify volunteers of significant changes</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Current Status -->
+                <div class="card mt-3" th:if="${task.overdue != null and task.overdue}">
+                    <div class="card-header bg-warning">
+                        <h6 class="card-title mb-0 text-dark">
+                            <i class="fas fa-exclamation-triangle"></i> Attention Needed
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text text-dark">
+                            This task is currently overdue. Consider updating the due date or status.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

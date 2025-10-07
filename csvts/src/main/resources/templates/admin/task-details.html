@@ -20,7 +20,7 @@
             </div>
         </div>
 
-        <div th:if="${task}">
+        <div th:if="${task != null}">
             <div class="row">
                 <div class="col-md-8">
                     <!-- Task Information -->
@@ -41,13 +41,13 @@
                                 </div>
                                 <div class="col-md-3">
                                     <strong>Due Date:</strong>
-                                    <span th:if="${task.dueDate}" th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">Due Date</span>
-                                    <span th:unless="${task.dueDate}" class="text-muted">Not set</span>
+                                    <span th:if="${task.dueDate != null}" th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">Due Date</span>
+                                    <span th:if="${task.dueDate == null}" class="text-muted">Not set</span>
                                 </div>
                                 <div class="col-md-3">
                                     <strong>Start Date:</strong>
-                                    <span th:if="${task.startDate}" th:text="${#temporals.format(task.startDate, 'MMM dd, yyyy')}">Start Date</span>
-                                    <span th:unless="${task.startDate}" class="text-muted">Not set</span>
+                                    <span th:if="${task.startDate != null}" th:text="${#temporals.format(task.startDate, 'MMM dd, yyyy')}">Start Date</span>
+                                    <span th:if="${task.startDate == null}" class="text-muted">Not set</span>
                                 </div>
                                 <div class="col-md-3">
                                     <strong>Created:</strong>
@@ -57,8 +57,8 @@
 
                             <div class="mb-3">
                                 <strong>Description:</strong>
-                                <p th:if="${task.description}" th:text="${task.description}" class="mt-2">Description</p>
-                                <p th:unless="${task.description}" class="text-muted mt-2">No description provided</p>
+                                <p th:if="${task.description != null}" th:text="${task.description}" class="mt-2">Description</p>
+                                <p th:if="${task.description == null}" class="text-muted mt-2">No description provided</p>
                             </div>
 
                             <div>
@@ -156,10 +156,10 @@
                             <h6 class="card-title mb-0">Task Status</h6>
                         </div>
                         <div class="card-body">
-                            <div th:if="${task.overdue}" class="alert alert-warning">
+                            <div th:if="${task.overdue != null and task.overdue}" class="alert alert-warning">
                                 <i class="fas fa-exclamation-triangle"></i> This task is overdue!
                             </div>
-                            <div th:if="${task.canBeAssigned}" class="alert alert-info">
+                            <div th:if="${task.canBeAssigned != null and task.canBeAssigned}" class="alert alert-info">
                                 <i class="fas fa-info-circle"></i> This task can accept new assignments.
                             </div>
                         </div>

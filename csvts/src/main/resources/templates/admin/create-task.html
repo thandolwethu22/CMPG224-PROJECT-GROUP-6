@@ -21,16 +21,16 @@
                         <h5 class="card-title mb-0">Task Details</h5>
                     </div>
                     <div class="card-body">
-                        <form th:action="@{/tasks/admin/create}" th:object="${task}" method="post">
+                        <form th:action="@{/tasks/admin/create}" method="post">
                             <div class="mb-3">
                                 <label for="title" class="form-label">Task Title *</label>
-                                <input type="text" class="form-control" id="title" th:field="*{title}" required>
+                                <input type="text" class="form-control" id="title" name="title" required>
                                 <div class="form-text">Enter a clear and descriptive title for the task.</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" th:field="*{description}" 
+                                <textarea class="form-control" id="description" name="description" 
                                           rows="4" placeholder="Provide detailed instructions for this task..."></textarea>
                                 <div class="form-text">Describe what needs to be done, requirements, and any special instructions.</div>
                             </div>
@@ -39,27 +39,20 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="status" class="form-label">Status *</label>
-                                        <select class="form-select" id="status" th:field="*{status}" required>
-                                            <option value="OPEN">Open</option>
+                                        <select class="form-select" id="status" name="status" required>
+                                            <option value="OPEN" selected>Open</option>
                                             <option value="IN_PROGRESS">In Progress</option>
                                             <option value="COMPLETED">Completed</option>
-                                            <option value="CANCELLED">Cancelled</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="dueDate" class="form-label">Due Date</label>
-                                        <input type="date" class="form-control" id="dueDate" th:field="*{dueDate}">
+                                        <input type="date" class="form-control" id="dueDate" name="dueDate">
                                         <div class="form-text">Set a deadline for this task (optional).</div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="startDate" class="form-label">Start Date</label>
-                                <input type="date" class="form-control" id="startDate" th:field="*{startDate}">
-                                <div class="form-text">When should work on this task begin? (optional)</div>
                             </div>
 
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">

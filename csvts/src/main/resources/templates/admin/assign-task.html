@@ -26,7 +26,7 @@
                             <div class="card-body">
                                 <h6>Task Details:</h6>
                                 <p><strong>Title:</strong> <span th:text="${task.title}">Task Title</span></p>
-                                <p><strong>Description:</strong> <span th:text="${task.description ?: 'No description'}">Description</span></p>
+                                <p><strong>Description:</strong> <span th:text="${task.description != null ? task.description : 'No description'}">Description</span></p>
                                 <p><strong>Status:</strong> <span th:text="${task.status}">Status</span></p>
                             </div>
                         </div>

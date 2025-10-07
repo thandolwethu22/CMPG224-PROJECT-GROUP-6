@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:replace="layout :: html">
 <head>
     <title>Manage Tasks</title>
@@ -19,7 +19,7 @@
             <div class="col-md-2">
                 <div class="card bg-primary text-white">
                     <div class="card-body text-center py-2">
-                        <h5 th:text="${totalTasks}">0</h5>
+                        <h5 th:text="${totalTasks != null ? totalTasks : 0}">0</h5>
                         <small>Total Tasks</small>
                     </div>
                 </div>
@@ -27,7 +27,7 @@
             <div class="col-md-2">
                 <div class="card bg-success text-white">
                     <div class="card-body text-center py-2">
-                        <h5 th:text="${openTasks}">0</h5>
+                        <h5 th:text="${openTasks != null ? openTasks : 0}">0</h5>
                         <small>Open</small>
                     </div>
                 </div>
@@ -35,7 +35,7 @@
             <div class="col-md-2">
                 <div class="card bg-info text-white">
                     <div class="card-body text-center py-2">
-                        <h5 th:text="${completedTasks}">0</h5>
+                        <h5 th:text="${completedTasks != null ? completedTasks : 0}">0</h5>
                         <small>Completed</small>
                     </div>
                 </div>
@@ -90,8 +90,8 @@
                                         <strong th:text="${task.title}">Task Title</strong>
                                     </td>
                                     <td>
-                                        <span th:if="${task.description}" th:text="${#strings.abbreviate(task.description, 50)}">Description</span>
-                                        <span th:unless="${task.description}" class="text-muted">No description</span>
+                                        <span th:if="${task.description != null}" th:text="${#strings.abbreviate(task.description, 50)}">Description</span>
+                                        <span th:if="${task.description == null}" class="text-muted">No description</span>
                                     </td>
                                     <td>
                                         <span th:switch="${task.status}" class="badge">
@@ -102,8 +102,8 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span th:if="${task.dueDate}" th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">Due Date</span>
-                                        <span th:unless="${task.dueDate}" class="text-muted">No due date</span>
+                                        <span th:if="${task.dueDate != null}" th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">Due Date</span>
+                                        <span th:if="${task.dueDate == null}" class="text-muted">No due date</span>
                                     </td>
                                     <td th:text="${task.createdBy.username}">Admin</td>
                                     <td>

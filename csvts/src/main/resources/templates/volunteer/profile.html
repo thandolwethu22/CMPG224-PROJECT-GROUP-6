@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="layout :: html">
+<head>
+    <title>My Profile</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2"><i class="fas fa-user"></i> My Profile</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a th:href="@{/dashboard}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${volunteer}">
+            <!-- Profile Form -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/volunteer/profile}" th:object="${volunteer}" method="post">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="firstName" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="firstName" 
+                                               th:field="*{firstName}" required>
+                                        <div class="form-text">Your first name as you prefer to be called.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lastName" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="lastName" 
+                                               th:field="*{lastName}" required>
+                                        <div class="form-text">Your last name or surname.</div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" 
+                                           th:field="*{email}" required>
+                                    <div class="form-text">This email will be used for communications.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" 
+                                           th:field="*{phone}">
+                                    <div class="form-text">Optional - for urgent communications.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <textarea class="form-control" id="address" rows="3" 
+                                              th:field="*{address}"></textarea>
+                                    <div class="form-text">Your current address (optional).</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="skills" class="form-label">Skills & Expertise</label>
+                                    <textarea class="form-control" id="skills" rows="3" 
+                                              th:field="*{skills}" 
+                                              placeholder="e.g., Teaching, Cooking, First Aid, Computer Skills, Language Translation..."></textarea>
+                                    <div class="form-text">List your skills and areas of expertise. This helps administrators assign appropriate tasks.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="availability" class="form-label">Availability</label>
+                                    <textarea class="form-control" id="availability" rows="3" 
+                                              th:field="*{availability}" 
+                                              placeholder="e.g., Weekends 9am-5pm, Monday-Friday after 6pm..."></textarea>
+                                    <div class="form-text">Describe when you're typically available to volunteer.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="interests" class="form-label">Volunteer Interests</label>
+                                    <textarea class="form-control" id="interests" rows="2" 
+                                              th:field="*{interests}" 
+                                              placeholder="e.g., Working with children, Environmental projects, Elderly care..."></textarea>
+                                    <div class="form-text">What types of volunteer work are you most interested in?</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="emergencyContact" class="form-label">Emergency Contact</label>
+                                    <input type="text" class="form-control" id="emergencyContact" 
+                                           th:field="*{emergencyContact}">
+                                    <div class="form-text">Name and phone number of emergency contact (optional).</div>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a th:href="@{/dashboard}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Update Profile
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Summary -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-info-circle"></i> Profile Tips
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-lightbulb"></i> Complete Your Profile</h6>
+                                <p class="small mb-2">A complete profile helps administrators match you with suitable volunteer opportunities.</p>
+                            </div>
+                            
+                            <h6>Why Update Your Profile?</h6>
+                            <ul class="small">
+                                <li>Get matched with tasks that fit your skills</li>
+                                <li>Receive notifications about relevant opportunities</li>
+                                <li>Help administrators understand your availability</li>
+                                <li>Ensure we have your current contact information</li>
+                            </ul>
+
+                            <div class="mt-3">
+                                <h6>Current Status:</h6>
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Personal Info:</span>
+                                    <span th:if="${volunteer.firstName and volunteer.lastName and volunteer.email}" class="text-success">
+                                        <i class="fas fa-check"></i> Complete
+                                    </span>
+                                    <span th:unless="${volunteer.firstName and volunteer.lastName and volunteer.email}" class="text-warning">
+                                        <i class="fas fa-exclamation"></i> Incomplete
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Skills:</span>
+                                    <span th:if="${volunteer.skills}" class="text-success">
+                                        <i class="fas fa-check"></i> Provided
+                                    </span>
+                                    <span th:unless="${volunteer.skills}" class="text-warning">
+                                        <i class="fas fa-exclamation"></i> Missing
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between small">
+                                    <span>Availability:</span>
+                                    <span th:if="${volunteer.availability}" class="text-success">
+                                        <i class="fas fa-check"></i> Provided
+                                    </span>
+                                    <span th:unless="${volunteer.availability}" class="text-warning">
+                                        <i class="fas fa-exclamation"></i> Missing
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-bolt"></i> Quick Actions
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a th:href="@{/tasks/volunteer}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-tasks"></i> View My Tasks
+                                </a>
+                                <a th:href="@{/dashboard}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Volunteer Profile -->
+        <div th:if="${volunteer == null}" class="text-center py-5">
+            <i class="fas fa-user-slash fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">Volunteer Profile Not Found</h5>
+            <p class="text-muted">Please contact the administrator to set up your volunteer profile.</p>
+            <a th:href="@{/dashboard}" class="btn btn-primary">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>
