@@ -36,11 +36,12 @@ public class AssignmentController {
         this.volunteerService = volunteerService;
         this.userService = userService;
     }
-    
+
     // Admin: Assign task to volunteer
     @PostMapping("/admin/assign")
     public String assignTaskToVolunteer(@RequestParam Long taskId,
                                       @RequestParam Long volunteerId,
+                                      @RequestParam String status,
                                       Authentication authentication,
                                       RedirectAttributes redirectAttributes) {
         try {
@@ -51,7 +52,7 @@ public class AssignmentController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", 
                 "Failed to assign task: " + e.getMessage());
-            return "redirect:/tasks/admin/" + taskId;
+            return "redirect:/assignments/admin/" + taskId + "assign";
         }
     }
     

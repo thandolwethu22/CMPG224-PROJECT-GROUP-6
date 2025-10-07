@@ -141,7 +141,7 @@ public class AuthController {
         
         model.addAttribute("username", username);
         model.addAttribute("role", user.getRole());
-        
+        model.addAttribute("title", "Dashboard");
         if ("ADMIN".equals(user.getRole())) {
             // Admin dashboard with statistics
             model.addAttribute("totalTasks", taskService.getTotalTaskCount());
@@ -159,35 +159,47 @@ public class AuthController {
             
             return "admin/dashboard";
         } else {
-            // Volunteer dashboard
-            Optional<Volunteer> volunteer = volunteerService.getVolunteerByUser(user);
+            // Volunteer dashboard - WITH DEBUG
+            System.out.println("=== VOLUNTEER DASHBOARD DEBUG ===");
+            System.out.println("User: " + user.getUsername() + " (ID: " + user.getUserId() + ")");
     
-        if (volunteer.isPresent()) {
-            Volunteer vol = volunteer.get();
+            Optional<Volunteer> volunteer = volunteerService.getVolunteerByUser(user);
+            System.out.println("Volunteer found: " + volunteer.isPresent());
+    
+            if (volunteer.isPresent()) {
+                Volunteer vol = volunteer.get();
+                System.out.println("Volunteer ID: " + vol.getVolunteerId());
+                System.out.println("Volunteer Name: " + vol.getFirstName() + " " + vol.getLastName());
         
-            // Get assigned tasks
-            List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(vol.getVolunteerId());
+                // Get assigned tasks
+                List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(vol.getVolunteerId());
+                System.out.println("Assigned tasks count: " + assignedTasks.size());
         
-            // For now, use empty lists for assignments (we'll implement these later)
-            List<Assignment> activeAssignments = new ArrayList<>();
-            List<Assignment> completedAssignments = new ArrayList<>();
+                // Debug each task
+                for (Task task : assignedTasks) {
+                    System.out.println("  - Task: " + task.getTitle() + " (Status: " + task.getStatus() + ")");
+                }
         
-            // Calculate completion rate
-            long completedCount = assignedTasks.stream()
-                    .filter(task -> "COMPLETED".equals(task.getStatus()))
-                    .count();
-            double completionRate = assignedTasks.isEmpty() ? 0.0 : (double) completedCount / assignedTasks.size() * 100;
+                model.addAttribute("volunteer", vol);
+                model.addAttribute("assignedTasks", assignedTasks);
+                model.addAttribute("activeAssignments", new ArrayList<>());
+                model.addAttribute("completedAssignments", new ArrayList<>());
+                model.addAttribute("totalAssignments", assignedTasks.size());
         
-            model.addAttribute("volunteer", vol);
-            model.addAttribute("assignedTasks", assignedTasks);
-            model.addAttribute("activeAssignments", activeAssignments);
-            model.addAttribute("completedAssignments", completedAssignments);
-            model.addAttribute("totalAssignments", assignedTasks.size());
-            model.addAttribute("completionRate", Math.round(completionRate));
-        } else {
-            model.addAttribute("error", "Volunteer profile not found. Please contact administrator.");
+                // Calculate completion rate
+                long completedCount = assignedTasks.stream()
+                        .filter(task -> "COMPLETED".equals(task.getStatus()))
+                        .count();
+                double completionRate = assignedTasks.isEmpty() ? 0.0 : (double) completedCount / assignedTasks.size() * 100;
+                model.addAttribute("completionRate", Math.round(completionRate));
+        
+                System.out.println("Completion rate: " + completionRate + "%");
+            } else {
+                System.out.println("ERROR: No volunteer profile found!");
+                model.addAttribute("error", "Volunteer profile not found. Please contact administrator.");
+            }
         }
+        System.out.println("=== END DEBUG ===");
         return "volunteer/dashboard";
-        }
     }
 }
