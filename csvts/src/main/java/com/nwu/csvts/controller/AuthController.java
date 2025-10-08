@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Controller
@@ -142,6 +143,7 @@ public class AuthController {
         model.addAttribute("username", username);
         model.addAttribute("role", user.getRole());
         model.addAttribute("title", "Dashboard");
+        
         if ("ADMIN".equals(user.getRole())) {
             // Admin dashboard with statistics
             model.addAttribute("totalTasks", taskService.getTotalTaskCount());
@@ -151,7 +153,7 @@ public class AuthController {
             model.addAttribute("overdueTasks", taskService.getOverdueTasks().size());
             
             // Recent tasks for admin overview
-            List<com.nwu.csvts.model.Task> recentTasks = taskService.getAllTasks();
+            List<Task> recentTasks = taskService.getAllTasks();
             if (recentTasks.size() > 5) {
                 recentTasks = recentTasks.subList(0, 5); // Show only 5 most recent
             }
@@ -179,27 +181,40 @@ public class AuthController {
                 for (Task task : assignedTasks) {
                     System.out.println("  - Task: " + task.getTitle() + " (Status: " + task.getStatus() + ")");
                 }
+
+                // Separate active and completed tasks
+                List<Task> activeTasks = assignedTasks.stream()
+                        .filter(task -> task.getStatus() != null && 
+                               ("OPEN".equals(task.getStatus()) || "IN_PROGRESS".equals(task.getStatus())))
+                        .collect(Collectors.toList());
+                
+                List<Task> completedTasks = assignedTasks.stream()
+                        .filter(task -> task.getStatus() != null && "COMPLETED".equals(task.getStatus()))
+                        .collect(Collectors.toList());
         
                 model.addAttribute("volunteer", vol);
                 model.addAttribute("assignedTasks", assignedTasks);
-                model.addAttribute("activeAssignments", new ArrayList<>());
-                model.addAttribute("completedAssignments", new ArrayList<>());
+                model.addAttribute("activeAssignments", activeTasks);
+                model.addAttribute("completedAssignments", completedTasks);
                 model.addAttribute("totalAssignments", assignedTasks.size());
         
-                // Calculate completion rate
+                // Calculate completion rate safely
                 long completedCount = assignedTasks.stream()
-                        .filter(task -> "COMPLETED".equals(task.getStatus()))
+                        .filter(task -> task.getStatus() != null && "COMPLETED".equals(task.getStatus()))
                         .count();
                 double completionRate = assignedTasks.isEmpty() ? 0.0 : (double) completedCount / assignedTasks.size() * 100;
                 model.addAttribute("completionRate", Math.round(completionRate));
         
+                System.out.println("Active tasks: " + activeTasks.size());
+                System.out.println("Completed tasks: " + completedTasks.size());
                 System.out.println("Completion rate: " + completionRate + "%");
             } else {
                 System.out.println("ERROR: No volunteer profile found!");
                 model.addAttribute("error", "Volunteer profile not found. Please contact administrator.");
             }
+            
+            System.out.println("=== END DEBUG ===");
+            return "volunteer/dashboard";
         }
-        System.out.println("=== END DEBUG ===");
-        return "volunteer/dashboard";
     }
 }

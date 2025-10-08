@@ -5,7 +5,8 @@
 </head>
 <body>
     <div th:fragment="content">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <!-- Header -->
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
             <h1 class="h2"><i class="fas fa-tachometer-alt"></i> My Dashboard</h1>
             <div th:if="${volunteer != null}" class="btn-group">
                 <span class="btn btn-outline-secondary" th:text="'Hello, ' + ${volunteer.firstName} + '!'"></span>
@@ -15,8 +16,8 @@
         <div th:if="${volunteer != null}">
             <!-- Statistics Cards -->
             <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card bg-primary text-white">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card bg-primary text-white h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
@@ -30,12 +31,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-warning text-dark">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card bg-warning text-dark h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <h2 th:text="${activeAssignments != null ? activeAssignments.size() : 0}">0</h2>
+                                    <h2 th:text="${activeAssignments != null ? #lists.size(activeAssignments) : 0}">0</h2>
                                     <p class="mb-0">Active</p>
                                 </div>
                                 <div class="align-self-center">
@@ -45,12 +46,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-success text-white">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card bg-success text-white h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <h2 th:text="${completedAssignments != null ? completedAssignments.size() : 0}">0</h2>
+                                    <h2 th:text="${completedAssignments != null ? #lists.size(completedAssignments) : 0}">0</h2>
                                     <p class="mb-0">Completed</p>
                                 </div>
                                 <div class="align-self-center">
@@ -60,8 +61,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card bg-info text-white h-100">
                         <div class="card-body text-center">
                             <div class="completion-rate" th:text="${completionRate != null ? completionRate + '%' : '0%'}">0%</div>
                             <p class="mb-0">Completion Rate</p>
@@ -72,7 +73,7 @@
 
             <!-- Active Tasks -->
             <div class="row">
-                <div class="col-md-8">
+                <div class="col-lg-8">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">
@@ -86,12 +87,12 @@
                                     <div th:each="task : ${assignedTasks}" 
                                          class="list-group-item mb-2"
                                          th:classappend="${task.status == 'OPEN'} ? 'task-status-open' : 
-                                                        ${task.status == 'IN_PROGRESS'} ? 'task-status-inprogress' : 
-                                                        'task-status-completed'}">
+                                                        (${task.status == 'IN_PROGRESS'} ? 'task-status-inprogress' : 
+                                                        'task-status-completed')">
                                         <div class="d-flex w-100 justify-content-between align-items-start">
                                             <div class="flex-grow-1">
                                                 <h6 class="mb-1" th:text="${task.title}">Task Title</h6>
-                                                <p class="mb-1" th:text="${task.description != null ? task.description : 'No description provided'}">Description</p>
+                                                <p class="mb-1 text-muted" th:text="${task.description != null ? task.description : 'No description provided'}">Description</p>
                                                 
                                                 <div class="row mt-2">
                                                     <div class="col-md-4">
@@ -101,6 +102,7 @@
                                                                 <span th:case="'OPEN'" class="bg-success" th:text="${task.status}">OPEN</span>
                                                                 <span th:case="'IN_PROGRESS'" class="bg-warning text-dark" th:text="${task.status}">IN_PROGRESS</span>
                                                                 <span th:case="'COMPLETED'" class="bg-primary" th:text="${task.status}">COMPLETED</span>
+                                                                <span th:case="*" class="bg-secondary" th:text="${task.status}">UNKNOWN</span>
                                                             </span>
                                                         </small>
                                                     </div>
@@ -150,7 +152,7 @@
                 </div>
 
                 <!-- Sidebar -->
-                <div class="col-md-4">
+                <div class="col-lg-4">
                     <!-- Quick Profile -->
                     <div class="card">
                         <div class="card-header">
@@ -209,7 +211,9 @@
             <i class="fas fa-user-slash fa-4x text-muted mb-3"></i>
             <h5 class="text-muted">Volunteer Profile Not Found</h5>
             <p class="text-muted">Please contact the administrator to set up your volunteer profile.</p>
-            <a th:href="@{/logout}" class="btn btn-primary">Logout</a>
+            <form th:action="@{/logout}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-primary">Logout</button>
+            </form>
         </div>
     </div>
 </body>

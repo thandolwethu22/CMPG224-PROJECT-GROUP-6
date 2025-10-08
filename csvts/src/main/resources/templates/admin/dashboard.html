@@ -25,7 +25,11 @@
             </a>
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3" th:text="'Welcome, ' + ${username}">Welcome</span>
-                <a class="nav-link" href="/logout">Logout</a>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </form>
             </div>
         </div>
     </nav>
@@ -49,6 +53,11 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/tasks/admin/create">
                                 <i class="fas fa-plus-circle"></i> Create Task
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/volunteers">
+                                <i class="fas fa-users"></i> Manage Volunteers
                             </a>
                         </li>
                     </ul>
@@ -145,7 +154,7 @@
                                         </a>
                                     </div>
                                     <div class="col-md-4 mb-3">
-                                        <a href="/" class="btn btn-outline-secondary w-100">
+                                        <a href="/admin/volunteers" class="btn btn-outline-secondary w-100">
                                             <i class="fas fa-users"></i> View Volunteers
                                         </a>
                                     </div>
