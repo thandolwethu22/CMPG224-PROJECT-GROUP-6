@@ -29,13 +29,7 @@ public interface VolunteerRepository extends JpaRepository<Volunteer, Long> {
     @Query("SELECT v FROM Volunteer v WHERE LOWER(v.firstName) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(v.lastName) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<Volunteer> findByNameContainingIgnoreCase(@Param("name") String name);
     
-    @Query("SELECT v FROM Volunteer v WHERE LOWER(v.skills) LIKE LOWER(CONCAT('%', :skill, '%'))")
-    List<Volunteer> findBySkillsContainingIgnoreCase(@Param("skill") String skill);
+    List<Volunteer> findBySkillsContainingIgnoreCase(String skill);
     
-    @Query("SELECT v FROM Volunteer v WHERE LOWER(v.availability) LIKE LOWER(CONCAT('%', :availability, '%'))")
-    List<Volunteer> findByAvailabilityContainingIgnoreCase(@Param("availability") String availability);
-    
-    // Count active volunteers
-    @Query("SELECT COUNT(v) FROM Volunteer v WHERE v.user.enabled = true")
-    long countActiveVolunteers();
+    List<Volunteer> findByAvailabilityContainingIgnoreCase(String availability);
 }
