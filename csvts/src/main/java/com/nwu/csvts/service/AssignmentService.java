@@ -66,4 +66,13 @@ public class AssignmentService {
     public List<Assignment> getCompletedAssignmentsByVolunteer(Volunteer volunteer) {
         return assignmentRepository.findByVolunteerAndStatus(volunteer, "COMPLETED");
     }
+    
+    // Add this missing method
+    public void deleteAssignment(Long assignmentId) {
+        if (assignmentRepository.existsById(assignmentId)) {
+            assignmentRepository.deleteById(assignmentId);
+        } else {
+            throw new RuntimeException("Assignment not found with id: " + assignmentId);
+        }
+    }
 }

@@ -7,7 +7,6 @@ import com.nwu.csvts.model.Assignment;
 import com.nwu.csvts.repository.TaskRepository;
 import com.nwu.csvts.repository.AssignmentRepository;
 import com.nwu.csvts.repository.VolunteerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +22,6 @@ public class TaskService {
     private final AssignmentRepository assignmentRepository;
     private final VolunteerRepository volunteerRepository;
     
-    @Autowired
     public TaskService(TaskRepository taskRepository, 
                       AssignmentRepository assignmentRepository,
                       VolunteerRepository volunteerRepository) {
@@ -75,6 +73,16 @@ public class TaskService {
                 .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
     }
     
+    // Update task status only
+    public Task updateTaskStatus(Long taskId, String status) {
+        return taskRepository.findById(taskId)
+                .map(task -> {
+                    task.setStatus(status);
+                    return taskRepository.save(task);
+                })
+                .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
+    }
+    
     public void deleteTask(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with id: " + taskId));
@@ -99,8 +107,11 @@ public class TaskService {
         Assignment savedAssignment = assignmentRepository.save(assignment);
         
         // Update bidirectional relationship
-        task.addAssignment(savedAssignment);
-        volunteer.addAssignment(savedAssignment);
+        task.getAssignments().add(savedAssignment);
+        volunteer.getAssignments().add(savedAssignment);
+        
+        taskRepository.save(task);
+        volunteerRepository.save(volunteer);
         
         return savedAssignment;
     }
@@ -113,6 +124,16 @@ public class TaskService {
     
     public List<Task> getTasksAssignedToVolunteer(Long volunteerId) {
         return taskRepository.findTasksByVolunteerId(volunteerId);
+    }
+    
+    // Get tasks assigned to a specific volunteer
+    public List<Task> getTasksByVolunteer(Volunteer volunteer) {
+        return taskRepository.findTasksByVolunteer(volunteer);
+    }
+    
+    // Get tasks by status for a specific volunteer
+    public List<Task> getTasksByVolunteerAndStatus(Volunteer volunteer, String status) {
+        return taskRepository.findTasksByVolunteerAndStatus(volunteer, status);
     }
     
     public Assignment updateAssignmentStatus(Long assignmentId, String status) {
@@ -143,12 +164,60 @@ public class TaskService {
         return taskRepository.count();
     }
     
+    // Alias method for consistency
+    public Long getTotalTasksCount() {
+        return taskRepository.count();
+    }
+    
     public long getTaskCountByStatus(String status) {
         return taskRepository.countByStatus(status);
+    }
+    
+    // Count tasks by volunteer and status
+    public long countTasksByVolunteerAndStatus(Volunteer volunteer, String status) {
+        return taskRepository.countTasksByVolunteerAndStatus(volunteer, status);
     }
     
     public List<Task> getTasksDueSoon(int days) {
         LocalDate dueDate = LocalDate.now().plusDays(days);
         return taskRepository.findByDueDateBefore(dueDate);
+    }
+    
+    // Get all open tasks (for volunteer to see available tasks)
+    public List<Task> getOpenTasks() {
+        return taskRepository.findByStatus("OPEN");
+    }
+    
+    // Volunteer-specific methods
+    public List<Task> getAvailableTasksForVolunteer() {
+        return getOpenTasks();
+    }
+    
+    // Get volunteer's task statistics
+    public VolunteerTaskStats getVolunteerTaskStats(Volunteer volunteer) {
+        long assignedCount = countTasksByVolunteerAndStatus(volunteer, "ASSIGNED");
+        long inProgressCount = countTasksByVolunteerAndStatus(volunteer, "IN_PROGRESS");
+        long completedCount = countTasksByVolunteerAndStatus(volunteer, "COMPLETED");
+        
+        return new VolunteerTaskStats(assignedCount, inProgressCount, completedCount);
+    }
+    
+    // Helper class for volunteer statistics
+    public static class VolunteerTaskStats {
+        private final long assignedCount;
+        private final long inProgressCount;
+        private final long completedCount;
+        
+        public VolunteerTaskStats(long assignedCount, long inProgressCount, long completedCount) {
+            this.assignedCount = assignedCount;
+            this.inProgressCount = inProgressCount;
+            this.completedCount = completedCount;
+        }
+        
+        // Getters
+        public long getAssignedCount() { return assignedCount; }
+        public long getInProgressCount() { return inProgressCount; }
+        public long getCompletedCount() { return completedCount; }
+        public long getTotalCount() { return assignedCount + inProgressCount + completedCount; }
     }
 }

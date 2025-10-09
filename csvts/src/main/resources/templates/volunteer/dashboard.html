@@ -13,6 +13,16 @@
             </div>
         </div>
 
+        <!-- Flash Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <div th:if="${volunteer != null}">
             <!-- Statistics Cards -->
             <div class="row mb-4">
@@ -36,7 +46,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <h2 th:text="${activeAssignments != null ? #lists.size(activeAssignments) : 0}">0</h2>
+                                    <h2 th:text="${activeAssignments != null ? activeAssignments : 0}">0</h2>
                                     <p class="mb-0">Active</p>
                                 </div>
                                 <div class="align-self-center">
@@ -51,11 +61,11 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <h2 th:text="${completedAssignments != null ? #lists.size(completedAssignments) : 0}">0</h2>
-                                    <p class="mb-0">Completed</p>
+                                    <h2 th:text="${totalHours != null ? totalHours : 0}">0</h2>
+                                    <p class="mb-0">Total Hours</p>
                                 </div>
                                 <div class="align-self-center">
-                                    <i class="fas fa-check-circle fa-2x"></i>
+                                    <i class="fas fa-clock fa-2x"></i>
                                 </div>
                             </div>
                         </div>
@@ -79,7 +89,7 @@
                             <h5 class="card-title mb-0">
                                 <i class="fas fa-list-alt"></i> My Assigned Tasks
                             </h5>
-                            <a th:href="@{/tasks/volunteer}" class="btn btn-sm btn-outline-primary">View All Tasks</a>
+                            <a th:href="@{/volunteer/tasks}" class="btn btn-sm btn-outline-primary">View All Tasks</a>
                         </div>
                         <div class="card-body">
                             <div th:if="${assignedTasks != null and !assignedTasks.empty}">
@@ -114,25 +124,26 @@
                                                         </small>
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <small th:if="${task.overdue != null and task.overdue}" class="text-danger">
+                                                        <small th:if="${task.isOverdue()}" class="text-danger">
                                                             <i class="fas fa-exclamation-triangle"></i> Overdue
                                                         </small>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="btn-group ms-3" role="group">
-                                                <form th:action="@{/assignments/volunteer/{id}/start(id=${task.taskId})}" 
+                                                <!-- FIXED: Use correct endpoint for starting tasks -->
+                                                <form th:action="@{/volunteer/tasks/{id}/start(id=${task.taskId})}" 
                                                       method="post" th:if="${task.status == 'OPEN'}" class="d-inline">
                                                     <button type="submit" class="btn btn-sm btn-outline-warning">
                                                         <i class="fas fa-play"></i> Start
                                                     </button>
                                                 </form>
-                                                <form th:action="@{/assignments/volunteer/{id}/complete(id=${task.taskId})}" 
-                                                      method="post" th:if="${task.status == 'IN_PROGRESS'}" class="d-inline">
-                                                    <button type="submit" class="btn btn-sm btn-outline-success">
-                                                        <i class="fas fa-check"></i> Complete
-                                                    </button>
-                                                </form>
+                                                <!-- FIXED: Link to complete form instead of modal -->
+                                                <a th:href="@{/volunteer/tasks/{id}/complete-form(id=${task.taskId})}" 
+                                                   th:if="${task.status == 'IN_PROGRESS'}" 
+                                                   class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-check"></i> Complete
+                                                </a>
                                                 <span th:if="${task.status == 'COMPLETED'}" class="badge bg-success p-2">Completed</span>
                                             </div>
                                         </div>
@@ -170,7 +181,7 @@
                                 <a th:href="@{/volunteer/profile}" class="btn btn-outline-primary">
                                     <i class="fas fa-edit"></i> Edit Profile
                                 </a>
-                                <a th:href="@{/tasks/volunteer}" class="btn btn-primary">
+                                <a th:href="@{/volunteer/tasks}" class="btn btn-primary">
                                     <i class="fas fa-tasks"></i> View All Tasks
                                 </a>
                             </div>

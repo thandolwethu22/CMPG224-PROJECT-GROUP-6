@@ -1,105 +1,103 @@
 package com.nwu.csvts.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "volunteers")
 public class Volunteer {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "volunteer_id")
     private Long volunteerId;
-
-    @NotBlank(message = "First name is required")
-    private String firstName;
-
-    @NotBlank(message = "Last name is required")
-    private String lastName;
-
-    @Email(message = "Email should be valid")
-    @Column(unique = true, nullable = false)
-    private String email;
-
-    private String phone;
-
-    private String skills;
-
-    private String availability;
-
+    
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id") // FIXED: references correct column
     private User user;
-
+    
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+    
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+    
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+    
+    @Column(name = "phone")
+    private String phone;
+    
+    @Column(name = "skills", columnDefinition = "TEXT")
+    private String skills;
+    
+    @Column(name = "availability", columnDefinition = "TEXT")
+    private String availability;
+    
     @OneToMany(mappedBy = "volunteer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Assignment> assignments = new ArrayList<>();
-
+    
+    @Transient
+    private Double totalHours;
+    
+    // Constructors
     public Volunteer() {}
-
-    public Volunteer(String firstName, String lastName, String email, User user) {
+    
+    public Volunteer(User user, String firstName, String lastName, String email) {
+        this.user = user;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.user = user;
     }
-
+    
     // Getters and Setters
     public Long getVolunteerId() { return volunteerId; }
     public void setVolunteerId(Long volunteerId) { this.volunteerId = volunteerId; }
-
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-
-    public String getSkills() { return skills; }
-    public void setSkills(String skills) { this.skills = skills; }
-
-    public String getAvailability() { return availability; }
-    public void setAvailability(String availability) { this.availability = availability; }
-
+    
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
-
+    
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    
+    public String getSkills() { return skills; }
+    public void setSkills(String skills) { this.skills = skills; }
+    
+    public String getAvailability() { return availability; }
+    public void setAvailability(String availability) { this.availability = availability; }
+    
     public List<Assignment> getAssignments() { return assignments; }
     public void setAssignments(List<Assignment> assignments) { this.assignments = assignments; }
-
-    public String getFullName() {
-        return firstName + " " + lastName;
-    }
-
-    // Helper method to add assignment
+    
+    public Double getTotalHours() { return totalHours; }
+    public void setTotalHours(Double totalHours) { this.totalHours = totalHours; }
+    
+    public Long getId() { return volunteerId; }
+    
+    public String getFullName() { return firstName + " " + lastName; }
+    
     public void addAssignment(Assignment assignment) {
+        if (assignments == null) {
+            assignments = new ArrayList<>();
+        }
         assignments.add(assignment);
         assignment.setVolunteer(this);
     }
-
-    // Helper method to remove assignment
+    
     public void removeAssignment(Assignment assignment) {
-        assignments.remove(assignment);
-        assignment.setVolunteer(null);
-    }
-
-    // Helper method to get active assignments
-    public List<Assignment> getActiveAssignments() {
-        return assignments.stream()
-                .filter(assignment -> !"COMPLETED".equals(assignment.getStatus()))
-                .toList();
-    }
-
-    // Helper method to get completed assignments
-    public List<Assignment> getCompletedAssignments() {
-        return assignments.stream()
-                .filter(assignment -> "COMPLETED".equals(assignment.getStatus()))
-                .toList();
+        if (assignments != null) {
+            assignments.remove(assignment);
+            assignment.setVolunteer(null);
+        }
     }
 }

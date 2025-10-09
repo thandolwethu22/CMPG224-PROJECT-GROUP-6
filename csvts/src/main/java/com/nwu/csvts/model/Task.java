@@ -11,6 +11,7 @@ import java.util.List;
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "task_id") // ADD THIS: Map to the correct column name
     private Long taskId;
 
     @Column(nullable = false)
@@ -22,24 +23,26 @@ public class Task {
     @Column(nullable = false)
     private String status = "OPEN"; // OPEN, IN_PROGRESS, COMPLETED, CANCELLED
 
+    @Column(name = "start_date") // ADD THIS: Map to the correct column name
     private LocalDate startDate;
     
+    @Column(name = "due_date") // ADD THIS: Map to the correct column name
     private LocalDate dueDate;
 
     @ManyToOne
-    @JoinColumn(name = "created_by", nullable = false)
+    @JoinColumn(name = "created_by", referencedColumnName = "user_id", nullable = false) // ADD: referencedColumnName
     private User createdBy;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // ADD THIS MISSING FIELD:
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Assignment> assignments = new ArrayList<>();
 
     // Constructors
     public Task() {
         this.createdAt = LocalDateTime.now();
+        this.status = "OPEN";
     }
 
     public Task(String title, String description, String status, LocalDate dueDate, User createdBy) {
@@ -76,26 +79,67 @@ public class Task {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    // ADD GETTER FOR ASSIGNMENTS:
     public List<Assignment> getAssignments() { return assignments; }
     public void setAssignments(List<Assignment> assignments) { this.assignments = assignments; }
 
-    // ADD THESE MISSING METHODS:
+    // Assignment management methods
     public void addAssignment(Assignment assignment) {
-        this.assignments.add(assignment);
+        if (assignments == null) {
+            assignments = new ArrayList<>();
+        }
+        assignments.add(assignment);
         assignment.setTask(this);
     }
 
     public void removeAssignment(Assignment assignment) {
-        this.assignments.remove(assignment);
-        assignment.setTask(null);
+        if (assignments != null) {
+            assignments.remove(assignment);
+            assignment.setTask(null);
+        }
     }
 
+    // Business logic methods
     public boolean isOverdue() {
-        return dueDate != null && dueDate.isBefore(LocalDate.now()) && !"COMPLETED".equals(status);
+        return dueDate != null && 
+               dueDate.isBefore(LocalDate.now()) && 
+               !"COMPLETED".equals(status) && 
+               !"CANCELLED".equals(status);
     }
 
     public boolean canBeAssigned() {
         return "OPEN".equals(status) || "IN_PROGRESS".equals(status);
+    }
+
+    public boolean isCompleted() {
+        return "COMPLETED".equals(status);
+    }
+
+    public boolean isInProgress() {
+        return "IN_PROGRESS".equals(status);
+    }
+
+    public boolean isOpen() {
+        return "OPEN".equals(status);
+    }
+
+    // Convenience method to get assigned volunteers count
+    public int getAssignedVolunteersCount() {
+        return assignments != null ? assignments.size() : 0;
+    }
+
+    // Status change methods
+    public void markAsInProgress() {
+        this.status = "IN_PROGRESS";
+        if (this.startDate == null) {
+            this.startDate = LocalDate.now();
+        }
+    }
+
+    public void markAsCompleted() {
+        this.status = "COMPLETED";
+    }
+
+    public void reopen() {
+        this.status = "OPEN";
     }
 }

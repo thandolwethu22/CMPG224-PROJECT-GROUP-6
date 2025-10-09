@@ -11,6 +11,7 @@ import java.util.Optional;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id") // ADD THIS LINE
     private Long userId;
     
     @NotBlank(message = "Username is required")
@@ -26,6 +27,9 @@ public class User {
     @Column(nullable = false)
     private String role;
 
+    @Column(nullable = false)
+    private Boolean active = true;
+
     private LocalDateTime createdAt;
     
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -33,6 +37,7 @@ public class User {
 
     public User() {
         this.createdAt = LocalDateTime.now();
+        this.active = true;
     }
 
     public User(String username, String passwordHash, String role) {
@@ -52,8 +57,15 @@ public class User {
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 
+    public void setPassword(String password) {
+        this.passwordHash = password;
+    }
+
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
@@ -64,5 +76,9 @@ public class User {
 
     public void setVolunteer(Volunteer volunteer) {
         this.volunteer = volunteer;
+    }
+
+    public boolean isActive() {
+        return active != null && active;
     }
 }

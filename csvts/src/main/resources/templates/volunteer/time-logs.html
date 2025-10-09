@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>My Time Logs</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+                <h1 class="h2"><i class="fas fa-history"></i> My Time Logs</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a th:href="@{/volunteer/dashboard}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h2 th:text="${#numbers.formatDecimal(totalHours, 1, 2)}">0</h2>
+                                    <p class="mb-0">Total Approved Hours</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-clock fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h2 th:text="${timeLogs != null ? timeLogs.size() : 0}">0</h2>
+                                    <p class="mb-0">Total Time Entries</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-list fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Logs Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list"></i> My Time Log History
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${timeLogs != null and !timeLogs.empty}" class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Hours</th>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="log : ${timeLogs}">
+                                    <td th:text="${log.task.title}">Task Title</td>
+                                    <td>
+                                        <span class="badge bg-primary" th:text="${log.hoursLogged + ' hrs'}">0 hrs</span>
+                                    </td>
+                                    <td th:text="${#temporals.format(log.dateLogged, 'MMM dd, yyyy')}">Date</td>
+                                    <td>
+                                        <span th:if="${log.description}" th:text="${log.description}">Description</span>
+                                        <span th:unless="${log.description}" class="text-muted">No description</span>
+                                    </td>
+                                    <td>
+                                        <span th:switch="${log.status}" class="badge">
+                                            <span th:case="'PENDING'" class="badge-pending" th:text="${log.status}">PENDING</span>
+                                            <span th:case="'APPROVED'" class="badge-approved" th:text="${log.status}">APPROVED</span>
+                                            <span th:case="'REJECTED'" class="badge-rejected" th:text="${log.status}">REJECTED</span>
+                                            <span th:case="'TRACKING'" class="badge-tracking" th:text="${log.status}">TRACKING</span>
+                                            <span th:case="*" class="bg-secondary" th:text="${log.status}">UNKNOWN</span>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${timeLogs == null or timeLogs.empty}" class="text-center py-5">
+                        <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No time logs yet</h5>
+                        <p class="text-muted">Your time logs will appear here once you start working on tasks.</p>
+                        <a th:href="@{/volunteer/tasks}" class="btn btn-primary">
+                            <i class="fas fa-tasks"></i> View My Tasks
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

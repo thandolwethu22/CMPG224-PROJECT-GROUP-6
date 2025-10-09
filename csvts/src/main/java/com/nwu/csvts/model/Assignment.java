@@ -10,25 +10,24 @@ public class Assignment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long assignmentId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "volunteer_id", nullable = false)
     private Volunteer volunteer;
 
     @Column(nullable = false)
-    private String status = "ASSIGNED"; // ASSIGNED, IN_PROGRESS, COMPLETED
+    private String status; // ASSIGNED, IN_PROGRESS, COMPLETED
 
-    @Column(name = "assigned_at", nullable = false)
     private LocalDateTime assignedAt;
-
+    private LocalDateTime startedAt;
     private LocalDateTime completedAt;
 
-    // Constructors
     public Assignment() {
         this.assignedAt = LocalDateTime.now();
+        this.status = "ASSIGNED";
     }
 
     public Assignment(Task task, Volunteer volunteer, String status) {
@@ -54,26 +53,28 @@ public class Assignment {
     public LocalDateTime getAssignedAt() { return assignedAt; }
     public void setAssignedAt(LocalDateTime assignedAt) { this.assignedAt = assignedAt; }
 
+    public LocalDateTime getStartedAt() { return startedAt; }
+    public void setStartedAt(LocalDateTime startedAt) { this.startedAt = startedAt; }
+
     public LocalDateTime getCompletedAt() { return completedAt; }
     public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
 
-    // ADD THESE MISSING METHODS:
+    // Business methods
+    public void markAsInProgress() {
+        this.status = "IN_PROGRESS";
+        this.startedAt = LocalDateTime.now();
+    }
+
     public void markAsCompleted() {
         this.status = "COMPLETED";
         this.completedAt = LocalDateTime.now();
-    }
-
-    public void markAsInProgress() {
-        this.status = "IN_PROGRESS";
     }
 
     public boolean isCompleted() {
         return "COMPLETED".equals(status);
     }
 
-    public boolean isOverdue() {
-        return task.getDueDate() != null && 
-               task.getDueDate().isBefore(java.time.LocalDate.now()) && 
-               !isCompleted();
+    public boolean isInProgress() {
+        return "IN_PROGRESS".equals(status);
     }
 }

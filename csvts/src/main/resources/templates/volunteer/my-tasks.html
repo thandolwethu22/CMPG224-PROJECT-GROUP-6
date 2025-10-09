@@ -1,15 +1,38 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="layout :: html">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
 <head>
     <title>My Tasks</title>
+    <style>
+        .task-card {
+            transition: transform 0.2s;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+        }
+        .status-open { border-left: 4px solid #28a745; }
+        .status-inprogress { border-left: 4px solid #ffc107; }
+        .status-completed { border-left: 4px solid #007bff; }
+    </style>
 </head>
 <body>
     <div th:fragment="content">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2"><i class="fas fa-tasks"></i> My Tasks</h1>
             <div class="btn-toolbar mb-2 mb-md-0">
-                <span class="btn btn-outline-secondary" th:text="'Welcome, ' + ${volunteer?.firstName} + '!'"></span>
+                <a th:href="@{/volunteer/dashboard}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
             </div>
+        </div>
+
+        <!-- Flash Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
         <div th:if="${volunteer}">
@@ -17,134 +40,226 @@
             <div class="row mb-4">
                 <div class="col-md-3">
                     <div class="card bg-primary text-white">
-                        <div class="card-body text-center py-3">
-                            <h4 th:text="${tasks != null ? tasks.size() : 0}">0</h4>
-                            <small>Total Assigned</small>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h2 th:text="${assignedTasks != null ? assignedTasks.size() : 0}">0</h2>
+                                    <p class="mb-0">Total Assigned</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-tasks fa-2x"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card bg-success text-white">
-                        <div class="card-body text-center py-3">
-                            <h4 th:text="${tasks != null ? tasks.?[status == 'COMPLETED'].size() : 0}">0</h4>
-                            <small>Completed</small>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h2 th:text="${openTasks != null ? openTasks.size() : 0}">0</h2>
+                                    <p class="mb-0">Open</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-folder-open fa-2x"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card bg-warning text-dark">
-                        <div class="card-body text-center py-3">
-                            <h4 th:text="${tasks != null ? tasks.?[status == 'IN_PROGRESS'].size() : 0}">0</h4>
-                            <small>In Progress</small>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h2 th:text="${inProgressTasks != null ? inProgressTasks.size() : 0}">0</h2>
+                                    <p class="mb-0">In Progress</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-play-circle fa-2x"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card bg-info text-white">
-                        <div class="card-body text-center py-3">
-                            <h4 th:text="${tasks != null ? tasks.?[overdue].size() : 0}">0</h4>
-                            <small>Overdue</small>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h2 th:text="${completedTasks != null ? completedTasks.size() : 0}">0</h2>
+                                    <p class="mb-0">Completed</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Tasks List -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">My Assigned Tasks</h5>
-                </div>
-                <div class="card-body">
-                    <div th:if="${tasks != null and !tasks.empty}">
-                        <div class="list-group">
-                            <div th:each="task : ${tasks}" 
-                                 th:classappend="${task.status == 'OPEN'} ? 'task-status-open' : 
-                                                ${task.status == 'IN_PROGRESS'} ? 'task-status-inprogress' : 
-                                                'task-status-completed'"
-                                 class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1" th:text="${task.title}">Task Title</h6>
-                                        <p class="mb-1" th:text="${task.description} ?: 'No description provided'">Description</p>
-                                        
-                                        <div class="row mt-2">
-                                            <div class="col-md-3">
-                                                <small class="text-muted">
-                                                    <strong>Status:</strong>
-                                                    <span th:switch="${task.status}" class="badge ms-1">
-                                                        <span th:case="'OPEN'" class="bg-success" th:text="${task.status}">OPEN</span>
-                                                        <span th:case="'IN_PROGRESS'" class="bg-warning text-dark" th:text="${task.status}">IN_PROGRESS</span>
-                                                        <span th:case="'COMPLETED'" class="bg-primary" th:text="${task.status}">COMPLETED</span>
-                                                    </span>
-                                                </small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <small class="text-muted">
-                                                    <strong>Due Date:</strong>
-                                                    <span th:if="${task.dueDate}" th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">Due Date</span>
-                                                    <span th:unless="${task.dueDate}" class="text-muted">Not set</span>
-                                                </small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <small th:if="${task.overdue}" class="text-danger">
-                                                    <i class="fas fa-exclamation-triangle"></i> Overdue
-                                                </small>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-list-alt"></i> My Assigned Tasks
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Open Tasks -->
+                            <div th:if="${openTasks != null and !openTasks.empty}">
+                                <h6 class="text-success mb-3">
+                                    <i class="fas fa-folder-open"></i> Open Tasks (Ready to Start)
+                                </h6>
+                                <div class="row">
+                                    <div th:each="task : ${openTasks}" class="col-md-6 mb-3">
+                                        <div class="card task-card status-open">
+                                            <div class="card-body">
+                                                <h6 th:text="${task.title}" class="card-title"></h6>
+                                                <p class="card-text text-muted small" 
+                                                   th:text="${task.description != null ? task.description : 'No description provided'}">
+                                                </p>
+                                                
+                                                <div class="task-details small mb-3">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <strong>Due Date:</strong><br>
+                                                            <span th:if="${task.dueDate != null}" 
+                                                                  th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">
+                                                            </span>
+                                                            <span th:if="${task.dueDate == null}" class="text-muted">
+                                                                Not set
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <strong>Status:</strong><br>
+                                                            <span class="badge bg-success" th:text="${task.status}"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <form th:action="@{/volunteer/tasks/{id}/start(id=${task.taskId})}" method="post" class="d-inline">
+                                                    <button type="submit" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-play"></i> Start Task
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="btn-group ms-3" role="group">
-                                        <form th:action="@{/assignments/volunteer/{id}/start(id=${task.assignments[0].assignmentId})}" 
-                                              method="post" th:if="${task.status == 'OPEN'}">
-                                            <button type="submit" class="btn btn-sm btn-outline-warning">
-                                                <i class="fas fa-play"></i> Start
-                                            </button>
-                                        </form>
-                                        <form th:action="@{/assignments/volunteer/{id}/complete(id=${task.assignments[0].assignmentId})}" 
-                                              method="post" th:if="${task.status == 'IN_PROGRESS'}">
-                                            <button type="submit" class="btn btn-sm btn-outline-success">
-                                                <i class="fas fa-check"></i> Complete
-                                            </button>
-                                        </form>
+                                </div>
+                            </div>
+
+                            <!-- In Progress Tasks -->
+                            <div th:if="${inProgressTasks != null and !inProgressTasks.empty}" class="mt-4">
+                                <h6 class="text-warning mb-3">
+                                    <i class="fas fa-play-circle"></i> Tasks In Progress
+                                </h6>
+                                <div class="row">
+                                    <div th:each="task : ${inProgressTasks}" class="col-md-6 mb-3">
+                                        <div class="card task-card status-inprogress">
+                                            <div class="card-body">
+                                                <h6 th:text="${task.title}" class="card-title"></h6>
+                                                <p class="card-text text-muted small" 
+                                                   th:text="${task.description != null ? task.description : 'No description provided'}">
+                                                </p>
+                                                
+                                                <div class="task-details small mb-3">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <strong>Due Date:</strong><br>
+                                                            <span th:if="${task.dueDate != null}" 
+                                                                  th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">
+                                                            </span>
+                                                            <span th:if="${task.dueDate == null}" class="text-muted">
+                                                                Not set
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <strong>Status:</strong><br>
+                                                            <span class="badge bg-warning text-dark" th:text="${task.status}"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- CHANGED: Use link to complete form instead of direct submission -->
+                                                <a th:href="@{/volunteer/tasks/{id}/complete-form(id=${task.taskId})}" 
+                                                   class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-check"></i> Complete Task
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div th:if="${tasks == null or tasks.empty}" class="text-center py-5">
-                        <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
-                        <h5 class="text-muted">No tasks assigned to you yet</h5>
-                        <p class="text-muted">Tasks will appear here when an administrator assigns them to you.</p>
-                        <a th:href="@{/volunteer/profile}" class="btn btn-primary">
-                            <i class="fas fa-user"></i> Update Your Profile
-                        </a>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Instructions -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-info-circle"></i> How to Use This Page
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <h6><i class="fas fa-play text-warning"></i> Start Task</h6>
-                            <p class="small">Click "Start" when you begin working on a task to update its status.</p>
-                        </div>
-                        <div class="col-md-4">
-                            <h6><i class="fas fa-check text-success"></i> Complete Task</h6>
-                            <p class="small">Click "Complete" when you finish a task to mark it as done.</p>
-                        </div>
-                        <div class="col-md-4">
-                            <h6><i class="fas fa-exclamation-triangle text-danger"></i> Overdue Tasks</h6>
-                            <p class="small">Red warnings indicate tasks that are past their due date.</p>
+                            <!-- Completed Tasks -->
+                            <div th:if="${completedTasks != null and !completedTasks.empty}" class="mt-4">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-check-circle"></i> Completed Tasks
+                                </h6>
+                                <div class="row">
+                                    <div th:each="task : ${completedTasks}" class="col-md-6 mb-3">
+                                        <div class="card task-card status-completed">
+                                            <div class="card-body">
+                                                <h6 th:text="${task.title}" class="card-title"></h6>
+                                                <p class="card-text text-muted small" 
+                                                   th:text="${task.description != null ? task.description : 'No description provided'}">
+                                                </p>
+                                                
+                                                <div class="task-details small mb-3">
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <strong>Due Date:</strong><br>
+                                                            <span th:if="${task.dueDate != null}" 
+                                                                  th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">
+                                                            </span>
+                                                            <span th:if="${task.dueDate == null}" class="text-muted">
+                                                                Not set
+                                                            </span>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <strong>Status:</strong><br>
+                                                            <span class="badge bg-success" th:text="${task.status}"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <span class="badge bg-success p-2">
+                                                    <i class="fas fa-check"></i> Task Completed
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- No Tasks Message -->
+                            <div th:if="${(openTasks == null or openTasks.empty) and (inProgressTasks == null or inProgressTasks.empty) and (completedTasks == null or completedTasks.empty)}" 
+                                 class="text-center py-5">
+                                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No Tasks Assigned</h5>
+                                <p class="text-muted">You don't have any tasks assigned to you yet.</p>
+                                <p class="text-muted">Tasks will appear here when an administrator assigns them to you.</p>
+                                <a th:href="@{/volunteer/dashboard}" class="btn btn-primary">
+                                    <i class="fas fa-tachometer-alt"></i> Back to Dashboard
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- No Volunteer Profile -->
+        <div th:if="${volunteer == null}" class="text-center py-5">
+            <i class="fas fa-user-slash fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">Volunteer Profile Not Found</h5>
+            <p class="text-muted">Please contact the administrator to set up your volunteer profile.</p>
+            <a th:href="@{/volunteer/dashboard}" class="btn btn-primary">Back to Dashboard</a>
         </div>
     </div>
 </body>

@@ -1,13 +1,11 @@
 package com.nwu.csvts.controller;
 
-import com.nwu.csvts.model.Assignment;
 import com.nwu.csvts.model.Task;
 import com.nwu.csvts.model.User;
 import com.nwu.csvts.model.Volunteer;
 import com.nwu.csvts.service.UserService;
 import com.nwu.csvts.service.VolunteerService;
 import com.nwu.csvts.service.TaskService;
-import com.nwu.csvts.service.AssignmentService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,11 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 
 @Controller
 public class AuthController {
@@ -27,16 +23,13 @@ public class AuthController {
     private final UserService userService;
     private final VolunteerService volunteerService;
     private final TaskService taskService;
-    private final AssignmentService assignmentService;
 
     public AuthController(UserService userService,
                          VolunteerService volunteerService,
-                         TaskService taskService,
-                         AssignmentService assignmentService) {
+                         TaskService taskService) {
         this.userService = userService;
         this.volunteerService = volunteerService;
         this.taskService = taskService;
-        this.assignmentService = assignmentService;
     }
     
     @GetMapping("/login")

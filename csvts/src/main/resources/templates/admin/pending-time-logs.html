@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>Pending Time Approvals</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-3 mb-4 border-bottom">
+                <h1 class="h2"><i class="fas fa-clock"></i> Pending Time Approvals</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <a th:href="@{/admin/dashboard}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Pending Time Logs -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list"></i> Time Logs Pending Approval
+                        <span class="badge bg-warning ms-2" th:text="${pendingLogs != null ? pendingLogs.size() : 0}">0</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${pendingLogs != null and !pendingLogs.empty}" class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Volunteer</th>
+                                    <th>Task</th>
+                                    <th>Hours</th>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="log : ${pendingLogs}">
+                                    <td>
+                                        <strong th:text="${log.volunteer.firstName + ' ' + log.volunteer.lastName}"></strong>
+                                        <br>
+                                        <small class="text-muted" th:text="${log.volunteer.email}"></small>
+                                    </td>
+                                    <td th:text="${log.task.title}">Task Title</td>
+                                    <td>
+                                        <span class="badge bg-primary" th:text="${log.hoursLogged + ' hrs'}">0 hrs</span>
+                                    </td>
+                                    <td th:text="${#temporals.format(log.dateLogged, 'MMM dd, yyyy')}">Date</td>
+                                    <td>
+                                        <span th:if="${log.description}" th:text="${#strings.abbreviate(log.description, 30)}">Description</span>
+                                        <span th:unless="${log.description}" class="text-muted">No description</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <form th:action="@{/admin/time-logs/{logId}/approve(logId=${log.id})}" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-success" 
+                                                        onclick="return confirm('Approve this time log?')">
+                                                    <i class="fas fa-check"></i> Approve
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#rejectModal"
+                                                    th:attr="data-log-id=${log.id}, data-volunteer-name=${log.volunteer.firstName + ' ' + log.volunteer.lastName}">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${pendingLogs == null or pendingLogs.empty}" class="text-center py-5">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h5 class="text-success">All caught up!</h5>
+                        <p class="text-muted">There are no pending time logs waiting for approval.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reject Modal -->
+        <div class="modal fade" id="rejectModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Reject Time Log</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="rejectForm" method="post">
+                        <div class="modal-body">
+                            <p>You are about to reject the time log for <strong id="volunteerName"></strong>.</p>
+                            <div class="mb-3">
+                                <label for="reason" class="form-label">Reason for Rejection *</label>
+                                <textarea class="form-control" id="reason" name="reason" rows="3" 
+                                          placeholder="Please provide a reason for rejection..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Reject Time Log</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const rejectModal = document.getElementById('rejectModal');
+                if (rejectModal) {
+                    rejectModal.addEventListener('show.bs.modal', function (event) {
+                        const button = event.relatedTarget;
+                        const logId = button.getAttribute('data-log-id');
+                        const volunteerName = button.getAttribute('data-volunteer-name');
+                        
+                        const modal = this;
+                        modal.querySelector('#volunteerName').textContent = volunteerName;
+                        modal.querySelector('#rejectForm').action = '/admin/time-logs/' + logId + '/reject';
+                    });
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

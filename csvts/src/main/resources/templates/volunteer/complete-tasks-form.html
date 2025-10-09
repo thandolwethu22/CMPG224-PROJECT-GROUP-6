@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>Complete Task</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2"><i class="fas fa-check-circle"></i> Complete Task</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a th:href="@{/volunteer/dashboard}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Task Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tasks"></i> Task Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Task Title:</strong> <span th:text="${task.title}">Task Title</span></p>
+                        <p><strong>Description:</strong> <span th:text="${task.description != null ? task.description : 'No description provided'}">Description</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-warning text-dark" th:text="${task.status}">IN_PROGRESS</span>
+                        </p>
+                        <p th:if="${task.dueDate != null}">
+                            <strong>Due Date:</strong> 
+                            <span th:text="${#temporals.format(task.dueDate, 'MMM dd, yyyy')}">Due Date</span>
+                        </p>
+                        <p th:if="${task.isOverdue()}" class="text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> This task is overdue
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completion Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock"></i> Log Your Work
+                </h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/volunteer/tasks/{id}/complete(id=${task.taskId})}" method="post">
+                    <!-- Hours Worked -->
+                    <div class="mb-3">
+                        <label for="hoursWorked" class="form-label">
+                            <strong>Hours Worked *</strong>
+                        </label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="hoursWorked" 
+                               name="hoursWorked" 
+                               step="0.5" 
+                               min="0.5" 
+                               max="24"
+                               required
+                               placeholder="Enter hours worked (e.g., 2.5 for 2 hours 30 minutes)">
+                        <div class="form-text">
+                            Enter the number of hours you worked on this task. Use decimal format (e.g., 1.5 for 1 hour 30 minutes).
+                        </div>
+                    </div>
+
+                    <!-- Completion Notes -->
+                    <div class="mb-3">
+                        <label for="completionNotes" class="form-label">
+                            <strong>Completion Notes *</strong>
+                        </label>
+                        <textarea class="form-control" 
+                                  id="completionNotes" 
+                                  name="completionNotes" 
+                                  rows="4" 
+                                  required
+                                  placeholder="Describe what you accomplished, any challenges faced, or additional details about completing this task..."></textarea>
+                        <div class="form-text">
+                            Provide details about your work. This helps administrators understand your contribution.
+                        </div>
+                    </div>
+
+                    <!-- Additional Comments (Optional) -->
+                    <div class="mb-3">
+                        <label for="additionalComments" class="form-label">
+                            <strong>Additional Comments (Optional)</strong>
+                        </label>
+                        <textarea class="form-control" 
+                                  id="additionalComments" 
+                                  name="additionalComments" 
+                                  rows="3"
+                                  placeholder="Any additional feedback or suggestions..."></textarea>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a th:href="@{/volunteer/dashboard}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check-circle"></i> Submit Completion
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Important Information -->
+        <div class="alert alert-info mt-4">
+            <h6><i class="fas fa-info-circle"></i> Important Information</h6>
+            <ul class="mb-0">
+                <li>Your time log will be submitted for administrator approval</li>
+                <li>Approved hours will be added to your total volunteer hours</li>
+                <li>You cannot modify completed tasks after submission</li>
+                <li>Administrators may contact you for additional information if needed</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

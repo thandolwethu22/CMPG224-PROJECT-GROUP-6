@@ -154,27 +154,6 @@ public class TaskController {
         }
     }
     
-    // Volunteer: View assigned tasks
-    @GetMapping("/volunteer")
-    public String viewMyTasks(Authentication authentication, Model model) {
-        String username = authentication.getName();
-        User currentUser = userService.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
-        
-        // FIXED: Use VolunteerService instead of currentUser.getVolunteer()
-        Optional<com.nwu.csvts.model.Volunteer> volunteer = volunteerService.getVolunteerByUser(currentUser);
-        if (volunteer.isPresent()) {
-            List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(volunteer.get().getVolunteerId());
-            model.addAttribute("tasks", assignedTasks);
-            model.addAttribute("volunteer", volunteer.get());
-            model.addAttribute("currentUser", currentUser);
-        } else {
-            model.addAttribute("error", "Volunteer profile not found");
-        }
-        
-        return "volunteer/my-tasks";
-    }
-    
     // Search tasks
     @GetMapping("/search")
     public String searchTasks(@RequestParam String keyword, 

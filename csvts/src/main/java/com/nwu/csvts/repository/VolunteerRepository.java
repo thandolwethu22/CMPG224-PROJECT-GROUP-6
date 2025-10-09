@@ -13,23 +13,38 @@ import java.util.Optional;
 @Repository
 public interface VolunteerRepository extends JpaRepository<Volunteer, Long> {
     
-    Optional<Volunteer> findByEmail(String email);
+    // Find volunteer by user
+    Optional<Volunteer> findByUser(User user);
     
-    boolean existsByEmail(String email);
+    // Find volunteer by username
+    Optional<Volunteer> findByUserUsername(String username);
     
-    @Query("SELECT v FROM Volunteer v WHERE v.user.userId = :userId")
-    Optional<Volunteer> findByUserId(@Param("userId") Long userId);
+    // Search volunteers by name or email
+    @Query("SELECT v FROM Volunteer v WHERE " +
+           "LOWER(v.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(v.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(v.email) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+    List<Volunteer> searchVolunteers(@Param("searchTerm") String searchTerm);
     
-    // Find by User entity
-    default Optional<Volunteer> findByUser(User user) {
-        return findByUserId(user.getUserId());
-    }
+    // Alternative search method using method naming
+    List<Volunteer> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+        String firstName, String lastName, String email);
     
-    // Search methods
-    @Query("SELECT v FROM Volunteer v WHERE LOWER(v.firstName) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(v.lastName) LIKE LOWER(CONCAT('%', :name, '%'))")
-    List<Volunteer> findByNameContainingIgnoreCase(@Param("name") String name);
-    
+    // Find volunteers by skill
     List<Volunteer> findBySkillsContainingIgnoreCase(String skill);
     
-    List<Volunteer> findByAvailabilityContainingIgnoreCase(String availability);
+    // Count active volunteers
+    Long countByUserActiveTrue();
+    
+    // Find all active volunteers
+    List<Volunteer> findByUserActiveTrue();
+    
+    // Find all inactive volunteers
+    List<Volunteer> findByUserActiveFalse();
+    
+    // ADD THESE MISSING METHODS:
+    boolean existsByEmail(String email);
+    
+    @Query("SELECT COUNT(v) FROM Volunteer v WHERE v.user.active = true")
+    Long countActiveVolunteers();
 }
