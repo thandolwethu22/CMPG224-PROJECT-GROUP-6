@@ -19,19 +19,18 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
     
     List<TimeLog> findByAssignmentVolunteerVolunteerIdOrderByCreatedAtDesc(Long volunteerId);
     
-    // FIXED: Use @Query with correct property paths
-    @Query("SELECT t FROM TimeLog t WHERE t.task.taskId = :taskId AND t.volunteer.volunteerId = :volunteerId")
-    List<TimeLog> findByTaskIdAndVolunteerId(@Param("taskId") Long taskId, @Param("volunteerId") Long volunteerId);
-    
-    // FIXED: Use correct property path - volunteer.volunteerId
+    // Ensure property name matches your entity (hoursWorked) and return 0 when there are no rows
+    @Query("SELECT COALESCE(SUM(t.hoursWorked), 0) FROM TimeLog t WHERE t.status = 'APPROVED'")
+    Double sumApprovedHours();
+
     @Query("SELECT COALESCE(SUM(t.hoursWorked), 0) FROM TimeLog t WHERE t.volunteer.volunteerId = :volunteerId AND t.status = 'APPROVED'")
     Double sumApprovedHoursByVolunteerId(@Param("volunteerId") Long volunteerId);
-    
-    @Query("SELECT COALESCE(SUM(t.hoursWorked), 0) FROM TimeLog t WHERE t.status = 'APPROVED'")
-    Double sumAllApprovedHours();
-    
+
     @Query("SELECT COALESCE(SUM(t.hoursWorked), 0) FROM TimeLog t WHERE t.volunteer.volunteerId = :volunteerId AND t.status = 'PENDING'")
     Double sumPendingHoursByVolunteerId(@Param("volunteerId") Long volunteerId);
-    
+
+    @Query("SELECT COALESCE(SUM(t.hoursWorked), 0) FROM TimeLog t WHERE t.status = 'APPROVED'")
+    Double sumAllApprovedHours();
+
     Long countByStatus(String status);
 }

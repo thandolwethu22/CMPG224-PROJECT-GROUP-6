@@ -10,6 +10,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Controller
@@ -55,10 +56,12 @@ public class VolunteerController {
                 model.addAttribute("username", volunteer.get().getFirstName());
                 return "volunteer/profile";
             } else {
-                return "redirect:/dashboard?error=Volunteer profile not found";
+                model.addAttribute("error", "Volunteer profile not found");
+                return "volunteer/profile";
             }
         } catch (Exception e) {
-            return "redirect:/dashboard?error=" + e.getMessage();
+            model.addAttribute("error", "Error loading profile: " + e.getMessage());
+            return "volunteer/profile";
         }
     }
     
@@ -83,7 +86,7 @@ public class VolunteerController {
             } else {
                 redirectAttributes.addFlashAttribute("error", 
                     "Volunteer profile not found");
-                return "redirect:/dashboard";
+                return "redirect:/volunteer/profile";
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", 
@@ -92,7 +95,7 @@ public class VolunteerController {
         }
     }
     
-    // Volunteer Dashboard
+    // Volunteer Dashboard - FIXED VERSION
     @GetMapping("/dashboard")
     public String volunteerDashboard(Authentication authentication, Model model) {
         try {
@@ -102,45 +105,50 @@ public class VolunteerController {
             
             Optional<Volunteer> volunteer = volunteerService.getVolunteerByUser(user);
             if (volunteer.isPresent()) {
-                // Get task statistics for dashboard
-                List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(volunteer.get().getVolunteerId());
-                List<Task> openTasks = assignedTasks.stream()
-                        .filter(task -> "OPEN".equals(task.getStatus()))
-                        .collect(Collectors.toList());
-                List<Task> inProgressTasks = assignedTasks.stream()
-                        .filter(task -> "IN_PROGRESS".equals(task.getStatus()))
-                        .collect(Collectors.toList());
-                List<Task> completedTasks = assignedTasks.stream()
-                        .filter(task -> "COMPLETED".equals(task.getStatus()))
-                        .collect(Collectors.toList());
+                Volunteer volunteerObj = volunteer.get();
                 
-                // Get total hours - FIXED method call
-                Double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteer.get().getVolunteerId());
+                // Get task statistics for dashboard - FIXED: Handle null cases
+                List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(volunteerObj.getVolunteerId());
+                List<Task> openTasks = assignedTasks != null ? assignedTasks.stream()
+                        .filter(task -> task != null && "OPEN".equals(task.getStatus()))
+                        .collect(Collectors.toList()) : new ArrayList<>();
+                List<Task> inProgressTasks = assignedTasks != null ? assignedTasks.stream()
+                        .filter(task -> task != null && "IN_PROGRESS".equals(task.getStatus()))
+                        .collect(Collectors.toList()) : new ArrayList<>();
+                List<Task> completedTasks = assignedTasks != null ? assignedTasks.stream()
+                        .filter(task -> task != null && "COMPLETED".equals(task.getStatus()))
+                        .collect(Collectors.toList()) : new ArrayList<>();
                 
-                // Get pending hours for approval
-                Double pendingHours = timeLogService.getTotalPendingHoursByVolunteer(volunteer.get().getVolunteerId());
+                // Get total hours - FIXED: Handle null cases
+                Double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteerObj.getVolunteerId());
+                Double pendingHours = timeLogService.getTotalPendingHoursByVolunteer(volunteerObj.getVolunteerId());
                 
-                model.addAttribute("volunteer", volunteer.get());
-                model.addAttribute("username", volunteer.get().getFirstName());
+                // Calculate completion rate safely
+                int completionRate = 0;
+                if (assignedTasks != null && !assignedTasks.isEmpty()) {
+                    completionRate = (completedTasks.size() * 100) / assignedTasks.size();
+                }
+                
+                model.addAttribute("volunteer", volunteerObj);
+                model.addAttribute("username", volunteerObj.getFirstName());
                 model.addAttribute("role", "VOLUNTEER");
                 model.addAttribute("title", "Dashboard");
-                model.addAttribute("totalAssignments", assignedTasks.size());
+                model.addAttribute("totalAssignments", assignedTasks != null ? assignedTasks.size() : 0);
                 model.addAttribute("activeAssignments", inProgressTasks.size());
                 model.addAttribute("completedAssignments", completedTasks.size());
-                model.addAttribute("assignedTasks", assignedTasks);
+                model.addAttribute("assignedTasks", assignedTasks != null ? assignedTasks : new ArrayList<>());
                 model.addAttribute("totalHours", totalHours != null ? totalHours : 0.0);
                 model.addAttribute("pendingHours", pendingHours != null ? pendingHours : 0.0);
-                model.addAttribute("completionRate", assignedTasks.isEmpty() ? 0 : 
-                    (completedTasks.size() * 100) / assignedTasks.size());
+                model.addAttribute("completionRate", completionRate);
                 
                 return "volunteer/dashboard";
             } else {
-                model.addAttribute("error", "Volunteer profile not found");
-                return "redirect:/login";
+                model.addAttribute("error", "Volunteer profile not found. Please contact administrator.");
+                return "volunteer/dashboard";
             }
         } catch (Exception e) {
             model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
-            return "redirect:/login";
+            return "volunteer/dashboard";
         }
     }
     
@@ -158,20 +166,20 @@ public class VolunteerController {
                 List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(volunteer.get().getVolunteerId());
                 
                 // Filter tasks by status
-                List<Task> openTasks = assignedTasks.stream()
-                        .filter(task -> "OPEN".equals(task.getStatus()))
-                        .collect(Collectors.toList());
+                List<Task> openTasks = assignedTasks != null ? assignedTasks.stream()
+                        .filter(task -> task != null && "OPEN".equals(task.getStatus()))
+                        .collect(Collectors.toList()) : new ArrayList<>();
                         
-                List<Task> inProgressTasks = assignedTasks.stream()
-                        .filter(task -> "IN_PROGRESS".equals(task.getStatus()))
-                        .collect(Collectors.toList());
+                List<Task> inProgressTasks = assignedTasks != null ? assignedTasks.stream()
+                        .filter(task -> task != null && "IN_PROGRESS".equals(task.getStatus()))
+                        .collect(Collectors.toList()) : new ArrayList<>();
                         
-                List<Task> completedTasks = assignedTasks.stream()
-                        .filter(task -> "COMPLETED".equals(task.getStatus()))
-                        .collect(Collectors.toList());
+                List<Task> completedTasks = assignedTasks != null ? assignedTasks.stream()
+                        .filter(task -> task != null && "COMPLETED".equals(task.getStatus()))
+                        .collect(Collectors.toList()) : new ArrayList<>();
                 
                 model.addAttribute("volunteer", volunteer.get());
-                model.addAttribute("assignedTasks", assignedTasks);
+                model.addAttribute("assignedTasks", assignedTasks != null ? assignedTasks : new ArrayList<>());
                 model.addAttribute("openTasks", openTasks);
                 model.addAttribute("inProgressTasks", inProgressTasks);
                 model.addAttribute("completedTasks", completedTasks);
@@ -182,11 +190,11 @@ public class VolunteerController {
                 return "volunteer/my-tasks";
             } else {
                 model.addAttribute("error", "Volunteer profile not found");
-                return "redirect:/volunteer/dashboard";
+                return "volunteer/dashboard";
             }
         } catch (Exception e) {
             model.addAttribute("error", "Error loading tasks: " + e.getMessage());
-            return "redirect:/volunteer/dashboard";
+            return "volunteer/dashboard";
         }
     }
     
@@ -202,8 +210,8 @@ public class VolunteerController {
             if (volunteer.isPresent()) {
                 // Verify the task is assigned to this volunteer
                 List<Task> volunteerTasks = taskService.getTasksAssignedToVolunteer(volunteer.get().getVolunteerId());
-                boolean isAssigned = volunteerTasks.stream()
-                        .anyMatch(task -> task.getTaskId().equals(taskId));
+                boolean isAssigned = volunteerTasks != null && volunteerTasks.stream()
+                        .anyMatch(task -> task != null && task.getTaskId().equals(taskId));
                 
                 if (isAssigned) {
                     // Update task status
@@ -236,8 +244,8 @@ public class VolunteerController {
                 if (task.isPresent()) {
                     // Verify assignment
                     List<Task> volunteerTasks = taskService.getTasksAssignedToVolunteer(volunteer.get().getVolunteerId());
-                    boolean isAssigned = volunteerTasks.stream()
-                            .anyMatch(t -> t.getTaskId().equals(taskId));
+                    boolean isAssigned = volunteerTasks != null && volunteerTasks.stream()
+                            .anyMatch(t -> t != null && t.getTaskId().equals(taskId));
                     
                     if (isAssigned && "IN_PROGRESS".equals(task.get().getStatus())) {
                         model.addAttribute("task", task.get());
@@ -245,7 +253,7 @@ public class VolunteerController {
                         model.addAttribute("title", "Complete Task");
                         model.addAttribute("role", "VOLUNTEER");
                         model.addAttribute("username", volunteer.get().getFirstName());
-                        return "volunteer/complete-task-form";
+                        return "volunteer/complete-tasks-form";
                     } else {
                         return "redirect:/volunteer/tasks?error=Task not found, not assigned to you, or not in progress";
                     }
@@ -280,8 +288,8 @@ public class VolunteerController {
             if (volunteer.isPresent()) {
                 // Verify the task is assigned to this volunteer and in progress
                 List<Task> volunteerTasks = taskService.getTasksAssignedToVolunteer(volunteer.get().getVolunteerId());
-                boolean isAssigned = volunteerTasks.stream()
-                        .anyMatch(task -> task.getTaskId().equals(taskId) && "IN_PROGRESS".equals(task.getStatus()));
+                boolean isAssigned = volunteerTasks != null && volunteerTasks.stream()
+                        .anyMatch(task -> task != null && task.getTaskId().equals(taskId) && "IN_PROGRESS".equals(task.getStatus()));
                 
                 if (isAssigned) {
                     // Update task status to completed
@@ -290,7 +298,7 @@ public class VolunteerController {
                     // Find the assignment and log hours
                     List<Assignment> assignments = assignmentService.getAssignmentsByVolunteer(volunteer.get());
                     Optional<Assignment> assignment = assignments.stream()
-                            .filter(a -> a.getTask().getTaskId().equals(taskId))
+                            .filter(a -> a != null && a.getTask() != null && a.getTask().getTaskId().equals(taskId))
                             .findFirst();
                     
                     if (assignment.isPresent()) {
@@ -344,7 +352,7 @@ public class VolunteerController {
                 Double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteer.get().getVolunteerId());
                 Double pendingHours = timeLogService.getTotalPendingHoursByVolunteer(volunteer.get().getVolunteerId());
                 
-                model.addAttribute("timeLogs", timeLogs);
+                model.addAttribute("timeLogs", timeLogs != null ? timeLogs : new ArrayList<>());
                 model.addAttribute("totalHours", totalHours != null ? totalHours : 0.0);
                 model.addAttribute("pendingHours", pendingHours != null ? pendingHours : 0.0);
                 model.addAttribute("volunteer", volunteer.get());
@@ -354,11 +362,11 @@ public class VolunteerController {
                 return "volunteer/time-logs";
             } else {
                 model.addAttribute("error", "Volunteer profile not found");
-                return "redirect:/volunteer/dashboard";
+                return "volunteer/dashboard";
             }
         } catch (Exception e) {
             model.addAttribute("error", "Error loading time logs: " + e.getMessage());
-            return "redirect:/volunteer/dashboard";
+            return "volunteer/dashboard";
         }
     }
     
@@ -381,7 +389,7 @@ public class VolunteerController {
                     
                     // Get time logs for this assignment
                     List<TimeLog> timeLogs = timeLogService.getTimeLogsByAssignment(assignmentId);
-                    model.addAttribute("timeLogs", timeLogs);
+                    model.addAttribute("timeLogs", timeLogs != null ? timeLogs : new ArrayList<>());
                     
                     model.addAttribute("title", "Assignment Details");
                     model.addAttribute("role", "VOLUNTEER");

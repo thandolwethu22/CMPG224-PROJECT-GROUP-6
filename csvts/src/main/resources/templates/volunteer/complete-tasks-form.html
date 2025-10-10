@@ -62,6 +62,8 @@
             </div>
             <div class="card-body">
                 <form th:action="@{/volunteer/tasks/{id}/complete(id=${task.taskId})}" method="post">
+                    <!-- CSRF token (Thymeleaf) -->
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <!-- Hours Worked -->
                     <div class="mb-3">
                         <label for="hoursWorked" class="form-label">

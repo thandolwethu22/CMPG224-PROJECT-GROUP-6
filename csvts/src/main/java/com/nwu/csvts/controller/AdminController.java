@@ -26,15 +26,21 @@ public class AdminController {
     private final TaskService taskService;
     
     public AdminController(VolunteerService volunteerService,
-                         TimeLogService timeLogService,
-                         ReportService reportService,
-                         TaskService taskService) {
+                           TimeLogService timeLogService,
+                           ReportService reportService,
+                           TaskService taskService) {
         this.volunteerService = volunteerService;
         this.timeLogService = timeLogService;
         this.reportService = reportService;
         this.taskService = taskService;
     }
-    
+
+    // Time Approval Management
+    // Duplicate method removed to resolve compile error.
+    // If you need to keep the functionality, ensure only one method with the signature:
+    // public String timeApprovalManagement(Authentication authentication, Model model)
+    // exists in this class.
+
     // Admin Dashboard
     @GetMapping("/dashboard")
     public String adminDashboard(Model model, Authentication authentication) {
@@ -54,11 +60,10 @@ public class AdminController {
             model.addAttribute("completedTasks", completedTasks != null ? completedTasks : 0);
             model.addAttribute("title", "Admin Dashboard");
             model.addAttribute("role", "ADMIN");
-            model.addAttribute("username", authentication.getName());
+            model.addAttribute("username", authentication != null ? authentication.getName() : "admin");
             
         } catch (Exception e) {
             model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
-            // Set default values
             model.addAttribute("totalVolunteers", 0);
             model.addAttribute("activeVolunteers", 0);
             model.addAttribute("totalHours", 0.0);
@@ -85,7 +90,6 @@ public class AdminController {
                 volunteers = volunteerService.getAllVolunteers();
             }
             
-            // Calculate total hours for each volunteer
             double totalAllHours = 0.0;
             for (Volunteer volunteer : volunteers) {
                 Double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteer.getVolunteerId());
@@ -100,7 +104,7 @@ public class AdminController {
             model.addAttribute("totalHours", totalAllHours);
             model.addAttribute("title", "Manage Volunteers");
             model.addAttribute("role", "ADMIN");
-            model.addAttribute("username", authentication.getName());
+            model.addAttribute("username", authentication != null ? authentication.getName() : "admin");
             
         } catch (Exception e) {
             model.addAttribute("error", "Error loading volunteers: " + e.getMessage());
@@ -129,7 +133,7 @@ public class AdminController {
                 model.addAttribute("assignedTasks", assignedTasks != null ? assignedTasks : List.of());
                 model.addAttribute("title", "Volunteer Details - " + volunteer.get().getFirstName() + " " + volunteer.get().getLastName());
                 model.addAttribute("role", "ADMIN");
-                model.addAttribute("username", authentication.getName());
+                model.addAttribute("username", authentication != null ? authentication.getName() : "admin");
             } else {
                 model.addAttribute("error", "Volunteer not found");
                 return "redirect:/admin/volunteers";
@@ -144,9 +148,9 @@ public class AdminController {
     // Update volunteer status
     @PostMapping("/volunteers/{id}/status")
     public String updateVolunteerStatus(@PathVariable Long id,
-                                      @RequestParam String status,
-                                      Authentication authentication,
-                                      RedirectAttributes redirectAttributes) {
+                                        @RequestParam String status,
+                                        Authentication authentication,
+                                        RedirectAttributes redirectAttributes) {
         try {
             boolean success = volunteerService.updateVolunteerStatus(id, status);
             if (success) {
@@ -191,37 +195,14 @@ public class AdminController {
         }
         return "redirect:/admin/volunteers";
     }
-    
-    // Time Approval Management
-    @GetMapping("/time-approval")
-    public String timeApprovalManagement(Authentication authentication, Model model) {
-        try {
-            List<TimeLog> pendingTimeLogs = timeLogService.getPendingTimeLogs();
-            List<TimeLog> approvedTimeLogs = timeLogService.getApprovedTimeLogs();
-            List<TimeLog> rejectedTimeLogs = timeLogService.getRejectedTimeLogs();
-            
-            model.addAttribute("pendingTimeLogs", pendingTimeLogs != null ? pendingTimeLogs : List.of());
-            model.addAttribute("approvedTimeLogs", approvedTimeLogs != null ? approvedTimeLogs : List.of());
-            model.addAttribute("rejectedTimeLogs", rejectedTimeLogs != null ? rejectedTimeLogs : List.of());
-            model.addAttribute("title", "Time Approval Management");
-            model.addAttribute("role", "ADMIN");
-            model.addAttribute("username", authentication.getName());
-        } catch (Exception e) {
-            model.addAttribute("error", "Error loading time approval page: " + e.getMessage());
-            model.addAttribute("pendingTimeLogs", List.of());
-            model.addAttribute("approvedTimeLogs", List.of());
-            model.addAttribute("rejectedTimeLogs", List.of());
-        }
-        return "admin/time-approval";
-    }
-    
+
     // Approve Time Log
     @PostMapping("/time-logs/{logId}/approve")
     public String approveTimeLog(@PathVariable Long logId, 
-                               Authentication authentication,
-                               RedirectAttributes redirectAttributes) {
+                                 Authentication authentication,
+                                 RedirectAttributes redirectAttributes) {
         try {
-            String username = authentication.getName();
+            String username = authentication != null ? authentication.getName() : "admin";
             boolean success = timeLogService.approveTimeLog(logId, username);
             if (success) {
                 redirectAttributes.addFlashAttribute("success", "Time log approved successfully");
@@ -237,16 +218,16 @@ public class AdminController {
     // Reject Time Log
     @PostMapping("/time-logs/{logId}/reject")
     public String rejectTimeLog(@PathVariable Long logId, 
-                               @RequestParam(required = false) String reason,
-                               Authentication authentication,
-                               RedirectAttributes redirectAttributes) {
+                                @RequestParam(required = false) String reason,
+                                Authentication authentication,
+                                RedirectAttributes redirectAttributes) {
         try {
             if (reason == null || reason.trim().isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "Rejection reason is required");
                 return "redirect:/admin/time-approval";
             }
             
-            String username = authentication.getName();
+            String username = authentication != null ? authentication.getName() : "admin";
             boolean success = timeLogService.rejectTimeLog(logId, reason.trim(), username);
             if (success) {
                 redirectAttributes.addFlashAttribute("success", "Time log rejected");
@@ -258,4 +239,6 @@ public class AdminController {
         }
         return "redirect:/admin/time-approval";
     }
+
+    // ...existing code...
 }

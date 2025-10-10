@@ -41,6 +41,9 @@ public class Volunteer {
     @Transient
     private Double totalHours;
     
+    @Transient
+    private Boolean active = true; // added so templates referencing volunteer.active won't fail
+    
     // Constructors
     public Volunteer() {}
     
@@ -81,6 +84,9 @@ public class Volunteer {
     
     public Double getTotalHours() { return totalHours; }
     public void setTotalHours(Double totalHours) { this.totalHours = totalHours; }
+    
+    public Boolean getActive() { return active != null ? active : true; }
+    public void setActive(Boolean active) { this.active = active; }
     
     public Long getId() { return volunteerId; }
     

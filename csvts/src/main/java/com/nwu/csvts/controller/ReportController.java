@@ -31,12 +31,12 @@ public class ReportController {
             // Basic statistics
             Long totalVolunteers = volunteerService.getTotalVolunteersCount();
             Long activeVolunteers = volunteerService.getActiveVolunteersCount();
-            Double totalHours = timeLogService.getTotalVolunteerHours();
+            double totalHours = timeLogService.getTotalApprovedHours();
             Long pendingApprovals = timeLogService.getPendingTimeLogsCount();
             
             model.addAttribute("totalVolunteers", totalVolunteers);
             model.addAttribute("activeVolunteers", activeVolunteers);
-            model.addAttribute("totalHours", totalHours != null ? totalHours : 0.0);
+            model.addAttribute("totalHours", totalHours);
             model.addAttribute("pendingApprovals", pendingApprovals);
             
         } catch (Exception e) {
