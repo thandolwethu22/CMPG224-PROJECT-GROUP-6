@@ -8,6 +8,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Optional;
 import java.util.List;
 import java.util.ArrayList;
@@ -17,6 +20,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/volunteer")
 public class VolunteerController {
     
+    private static final Logger logger = LoggerFactory.getLogger(VolunteerController.class);
+
     private final VolunteerService volunteerService;
     private final UserService userService;
     private final TaskService taskService;
@@ -35,22 +40,29 @@ public class VolunteerController {
         this.assignmentService = assignmentService;
     }
     
+    // ...existing code...
+    
     // View volunteer profile
     @GetMapping("/profile")
     public String viewProfile(Authentication authentication, Model model) {
         try {
+            if (authentication == null) {
+                model.addAttribute("error", "Not authenticated");
+                return "redirect:/login";
+            }
+
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
             
             Optional<Volunteer> volunteer = volunteerService.getVolunteerByUser(user);
             if (volunteer.isPresent()) {
-                // Get total hours for the volunteer
-                Double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteer.get().getVolunteerId());
+                // Get total hours for the volunteer (safe call)
+                double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteer.get().getVolunteerId());
                 
                 model.addAttribute("volunteer", volunteer.get());
                 model.addAttribute("user", user);
-                model.addAttribute("totalHours", totalHours != null ? totalHours : 0.0);
+                model.addAttribute("totalHours", totalHours);
                 model.addAttribute("title", "My Profile");
                 model.addAttribute("role", "VOLUNTEER");
                 model.addAttribute("username", volunteer.get().getFirstName());
@@ -60,6 +72,7 @@ public class VolunteerController {
                 return "volunteer/profile";
             }
         } catch (Exception e) {
+            logger.error("viewProfile error", e);
             model.addAttribute("error", "Error loading profile: " + e.getMessage());
             return "volunteer/profile";
         }
@@ -71,6 +84,10 @@ public class VolunteerController {
                               Authentication authentication,
                               RedirectAttributes redirectAttributes) {
         try {
+            if (authentication == null) {
+                redirectAttributes.addFlashAttribute("error", "Not authenticated");
+                return "redirect:/login";
+            }
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -89,6 +106,7 @@ public class VolunteerController {
                 return "redirect:/volunteer/profile";
             }
         } catch (Exception e) {
+            logger.error("updateProfile error", e);
             redirectAttributes.addFlashAttribute("error", 
                 "Failed to update profile: " + e.getMessage());
             return "redirect:/volunteer/profile";
@@ -99,6 +117,11 @@ public class VolunteerController {
     @GetMapping("/dashboard")
     public String volunteerDashboard(Authentication authentication, Model model) {
         try {
+            if (authentication == null) {
+                model.addAttribute("error", "Not authenticated");
+                return "redirect:/login";
+            }
+
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -109,23 +132,24 @@ public class VolunteerController {
                 
                 // Get task statistics for dashboard - FIXED: Handle null cases
                 List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(volunteerObj.getVolunteerId());
-                List<Task> openTasks = assignedTasks != null ? assignedTasks.stream()
+                assignedTasks = assignedTasks != null ? assignedTasks : new ArrayList<>();
+                List<Task> openTasks = assignedTasks.stream()
                         .filter(task -> task != null && "OPEN".equals(task.getStatus()))
-                        .collect(Collectors.toList()) : new ArrayList<>();
-                List<Task> inProgressTasks = assignedTasks != null ? assignedTasks.stream()
+                        .collect(Collectors.toList());
+                List<Task> inProgressTasks = assignedTasks.stream()
                         .filter(task -> task != null && "IN_PROGRESS".equals(task.getStatus()))
-                        .collect(Collectors.toList()) : new ArrayList<>();
-                List<Task> completedTasks = assignedTasks != null ? assignedTasks.stream()
+                        .collect(Collectors.toList());
+                List<Task> completedTasks = assignedTasks.stream()
                         .filter(task -> task != null && "COMPLETED".equals(task.getStatus()))
-                        .collect(Collectors.toList()) : new ArrayList<>();
+                        .collect(Collectors.toList());
                 
-                // Get total hours - FIXED: Handle null cases
-                Double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteerObj.getVolunteerId());
-                Double pendingHours = timeLogService.getTotalPendingHoursByVolunteer(volunteerObj.getVolunteerId());
+                // Get total hours - FIXED: use primitive double for safety
+                double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteerObj.getVolunteerId());
+                double pendingHours = timeLogService.getTotalPendingHoursByVolunteer(volunteerObj.getVolunteerId());
                 
                 // Calculate completion rate safely
                 int completionRate = 0;
-                if (assignedTasks != null && !assignedTasks.isEmpty()) {
+                if (!assignedTasks.isEmpty()) {
                     completionRate = (completedTasks.size() * 100) / assignedTasks.size();
                 }
                 
@@ -133,12 +157,12 @@ public class VolunteerController {
                 model.addAttribute("username", volunteerObj.getFirstName());
                 model.addAttribute("role", "VOLUNTEER");
                 model.addAttribute("title", "Dashboard");
-                model.addAttribute("totalAssignments", assignedTasks != null ? assignedTasks.size() : 0);
+                model.addAttribute("totalAssignments", assignedTasks.size());
                 model.addAttribute("activeAssignments", inProgressTasks.size());
                 model.addAttribute("completedAssignments", completedTasks.size());
-                model.addAttribute("assignedTasks", assignedTasks != null ? assignedTasks : new ArrayList<>());
-                model.addAttribute("totalHours", totalHours != null ? totalHours : 0.0);
-                model.addAttribute("pendingHours", pendingHours != null ? pendingHours : 0.0);
+                model.addAttribute("assignedTasks", assignedTasks);
+                model.addAttribute("totalHours", totalHours);
+                model.addAttribute("pendingHours", pendingHours);
                 model.addAttribute("completionRate", completionRate);
                 
                 return "volunteer/dashboard";
@@ -147,6 +171,7 @@ public class VolunteerController {
                 return "volunteer/dashboard";
             }
         } catch (Exception e) {
+            logger.error("volunteerDashboard error", e);
             model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
             return "volunteer/dashboard";
         }
@@ -156,6 +181,11 @@ public class VolunteerController {
     @GetMapping("/tasks")
     public String myTasks(Authentication authentication, Model model) {
         try {
+            if (authentication == null) {
+                model.addAttribute("error", "Not authenticated");
+                return "redirect:/login";
+            }
+
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -164,22 +194,23 @@ public class VolunteerController {
             if (volunteer.isPresent()) {
                 // Get tasks assigned to this volunteer
                 List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(volunteer.get().getVolunteerId());
+                assignedTasks = assignedTasks != null ? assignedTasks : new ArrayList<>();
                 
                 // Filter tasks by status
-                List<Task> openTasks = assignedTasks != null ? assignedTasks.stream()
+                List<Task> openTasks = assignedTasks.stream()
                         .filter(task -> task != null && "OPEN".equals(task.getStatus()))
-                        .collect(Collectors.toList()) : new ArrayList<>();
+                        .collect(Collectors.toList());
                         
-                List<Task> inProgressTasks = assignedTasks != null ? assignedTasks.stream()
+                List<Task> inProgressTasks = assignedTasks.stream()
                         .filter(task -> task != null && "IN_PROGRESS".equals(task.getStatus()))
-                        .collect(Collectors.toList()) : new ArrayList<>();
+                        .collect(Collectors.toList());
                         
-                List<Task> completedTasks = assignedTasks != null ? assignedTasks.stream()
+                List<Task> completedTasks = assignedTasks.stream()
                         .filter(task -> task != null && "COMPLETED".equals(task.getStatus()))
-                        .collect(Collectors.toList()) : new ArrayList<>();
+                        .collect(Collectors.toList());
                 
                 model.addAttribute("volunteer", volunteer.get());
-                model.addAttribute("assignedTasks", assignedTasks != null ? assignedTasks : new ArrayList<>());
+                model.addAttribute("assignedTasks", assignedTasks);
                 model.addAttribute("openTasks", openTasks);
                 model.addAttribute("inProgressTasks", inProgressTasks);
                 model.addAttribute("completedTasks", completedTasks);
@@ -193,6 +224,7 @@ public class VolunteerController {
                 return "volunteer/dashboard";
             }
         } catch (Exception e) {
+            logger.error("myTasks error", e);
             model.addAttribute("error", "Error loading tasks: " + e.getMessage());
             return "volunteer/dashboard";
         }
@@ -202,6 +234,11 @@ public class VolunteerController {
     @PostMapping("/tasks/{taskId}/start")
     public String startTask(@PathVariable Long taskId, Authentication authentication, RedirectAttributes redirectAttributes) {
         try {
+            if (authentication == null) {
+                redirectAttributes.addFlashAttribute("error", "Not authenticated");
+                return "redirect:/login";
+            }
+
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -225,6 +262,7 @@ public class VolunteerController {
                 redirectAttributes.addFlashAttribute("error", "Volunteer profile not found");
             }
         } catch (Exception e) {
+            logger.error("startTask error", e);
             redirectAttributes.addFlashAttribute("error", "Error starting task: " + e.getMessage());
         }
         return "redirect:/volunteer/tasks";
@@ -234,6 +272,11 @@ public class VolunteerController {
     @GetMapping("/tasks/{taskId}/complete-form")
     public String showCompleteTaskForm(@PathVariable Long taskId, Authentication authentication, Model model) {
         try {
+            if (authentication == null) {
+                model.addAttribute("error", "Not authenticated");
+                return "redirect:/login";
+            }
+
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -261,6 +304,7 @@ public class VolunteerController {
             }
             return "redirect:/volunteer/tasks?error=Task not found or access denied";
         } catch (Exception e) {
+            logger.error("showCompleteTaskForm error", e);
             return "redirect:/volunteer/tasks?error=" + e.getMessage();
         }
     }
@@ -274,8 +318,13 @@ public class VolunteerController {
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
         try {
+            if (authentication == null) {
+                redirectAttributes.addFlashAttribute("error", "Not authenticated");
+                return "redirect:/login";
+            }
+
             // Validate hours worked
-            if (hoursWorked <= 0 || hoursWorked > 24) {
+            if (hoursWorked == null || hoursWorked <= 0 || hoursWorked > 24) {
                 redirectAttributes.addFlashAttribute("error", "Hours worked must be between 0.1 and 24");
                 return "redirect:/volunteer/tasks/" + taskId + "/complete-form";
             }
@@ -333,6 +382,7 @@ public class VolunteerController {
                 redirectAttributes.addFlashAttribute("error", "Volunteer profile not found");
             }
         } catch (Exception e) {
+            logger.error("completeTask error", e);
             redirectAttributes.addFlashAttribute("error", "Error completing task: " + e.getMessage());
         }
         return "redirect:/volunteer/tasks";
@@ -342,6 +392,11 @@ public class VolunteerController {
     @GetMapping("/time-logs")
     public String viewMyTimeLogs(Authentication authentication, Model model) {
         try {
+            if (authentication == null) {
+                model.addAttribute("error", "Not authenticated");
+                return "redirect:/login";
+            }
+
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -349,22 +404,25 @@ public class VolunteerController {
             Optional<Volunteer> volunteer = volunteerService.getVolunteerByUser(user);
             if (volunteer.isPresent()) {
                 List<TimeLog> timeLogs = timeLogService.getTimeLogsByVolunteerId(volunteer.get().getVolunteerId());
-                Double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteer.get().getVolunteerId());
-                Double pendingHours = timeLogService.getTotalPendingHoursByVolunteer(volunteer.get().getVolunteerId());
+                timeLogs = timeLogs != null ? timeLogs : new ArrayList<>();
+                double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteer.get().getVolunteerId());
+                double pendingHours = timeLogService.getTotalPendingHoursByVolunteer(volunteer.get().getVolunteerId());
                 
-                model.addAttribute("timeLogs", timeLogs != null ? timeLogs : new ArrayList<>());
-                model.addAttribute("totalHours", totalHours != null ? totalHours : 0.0);
-                model.addAttribute("pendingHours", pendingHours != null ? pendingHours : 0.0);
+                model.addAttribute("timeLogs", timeLogs);
+                model.addAttribute("totalHours", totalHours);
+                model.addAttribute("pendingHours", pendingHours);
                 model.addAttribute("volunteer", volunteer.get());
                 model.addAttribute("title", "My Time Logs");
                 model.addAttribute("role", "VOLUNTEER");
                 model.addAttribute("username", volunteer.get().getFirstName());
+                logger.debug("viewMyTimeLogs: user={}, volunteerId={}, logs={}", username, volunteer.get().getVolunteerId(), timeLogs.size());
                 return "volunteer/time-logs";
             } else {
                 model.addAttribute("error", "Volunteer profile not found");
                 return "volunteer/dashboard";
             }
         } catch (Exception e) {
+            logger.error("viewMyTimeLogs error", e);
             model.addAttribute("error", "Error loading time logs: " + e.getMessage());
             return "volunteer/dashboard";
         }
@@ -374,6 +432,11 @@ public class VolunteerController {
     @GetMapping("/assignments/{assignmentId}")
     public String viewAssignment(@PathVariable Long assignmentId, Authentication authentication, Model model) {
         try {
+            if (authentication == null) {
+                model.addAttribute("error", "Not authenticated");
+                return "redirect:/login";
+            }
+
             String username = authentication.getName();
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found: " + username));
@@ -399,6 +462,7 @@ public class VolunteerController {
             }
             return "redirect:/volunteer/dashboard?error=Assignment not found or access denied";
         } catch (Exception e) {
+            logger.error("viewAssignment error", e);
             return "redirect:/volunteer/dashboard?error=" + e.getMessage();
         }
     }

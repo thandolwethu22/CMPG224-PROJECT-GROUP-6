@@ -196,6 +196,23 @@ public class AdminController {
         return "redirect:/admin/volunteers";
     }
 
+
+    // Time Approval - serve pending logs page (matches dashboard link /admin/time-logs/pending)
+    @GetMapping("/time-logs/pending")
+    public String pendingTimeLogs(Authentication authentication, Model model) {
+        try {
+            List<TimeLog> pending = timeLogService.getPendingTimeLogs();
+            model.addAttribute("pendingLogs", pending != null ? pending : List.of());
+            model.addAttribute("title", "Time Approvals");
+            model.addAttribute("role", "ADMIN");
+            model.addAttribute("username", authentication != null ? authentication.getName() : "admin");
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading pending time logs: " + e.getMessage());
+            model.addAttribute("pendingLogs", List.of());
+        }
+        return "admin/pending-time-logs";
+    }
+
     // Approve Time Log
     @PostMapping("/time-logs/{logId}/approve")
     public String approveTimeLog(@PathVariable Long logId, 
@@ -212,9 +229,10 @@ public class AdminController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error approving time log: " + e.getMessage());
         }
-        return "redirect:/admin/time-approval";
+        // redirect to the pending list route used by the dashboard/template
+        return "redirect:/admin/time-logs/pending";
     }
-    
+
     // Reject Time Log
     @PostMapping("/time-logs/{logId}/reject")
     public String rejectTimeLog(@PathVariable Long logId, 
@@ -224,7 +242,7 @@ public class AdminController {
         try {
             if (reason == null || reason.trim().isEmpty()) {
                 redirectAttributes.addFlashAttribute("error", "Rejection reason is required");
-                return "redirect:/admin/time-approval";
+                return "redirect:/admin/time-logs/pending";
             }
             
             String username = authentication != null ? authentication.getName() : "admin";
@@ -237,8 +255,7 @@ public class AdminController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error rejecting time log: " + e.getMessage());
         }
-        return "redirect:/admin/time-approval";
+        // redirect to the pending list route used by the dashboard/template
+        return "redirect:/admin/time-logs/pending";
     }
-
-    // ...existing code...
 }
