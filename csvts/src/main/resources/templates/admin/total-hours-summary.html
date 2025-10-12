@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: html}">
+<head>
+    <title>Total Hours Summary</title>
+</head>
+<body>
+<div th:fragment="content">
+  <div class="container">
+    <h3>Total Approved Hours per Volunteer</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr><th>#</th><th>Volunteer</th><th>Total Hours</th></tr>
+      </thead>
+      <tbody>
+        <tr th:each="row,iterStat : ${hours}">
+          <td th:text="${iterStat.count}">1</td>
+          <td th:text="${row.firstName + ' ' + row.lastName}">Name</td>
+          <td th:text="${#numbers.formatDecimal(row.totalHours,1,2)}">0.0</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

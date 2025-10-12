@@ -6,6 +6,7 @@ import com.nwu.csvts.repository.AssignmentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import com.nwu.csvts.repository.VolunteerHoursProjection;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -67,6 +68,10 @@ public class TimeLogService {
         List<TimeLog> list = timeLogRepository.findByStatusOrderByCreatedAtDesc("APPROVED");
         logger.debug("getApprovedTimeLogs -> size={}", list != null ? list.size() : 0);
         return list;
+    }
+
+    public List<VolunteerHoursProjection> getTotalHoursPerVolunteer() {
+        return timeLogRepository.findApprovedHoursPerVolunteer();
     }
 
     public List<TimeLog> getRejectedTimeLogs() {

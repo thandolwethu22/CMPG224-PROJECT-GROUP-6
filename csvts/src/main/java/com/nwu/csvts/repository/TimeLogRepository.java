@@ -33,4 +33,15 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
     // convenience finder
     @Query("SELECT t FROM TimeLog t WHERE t.task.taskId = :taskId AND t.volunteer.volunteerId = :volunteerId")
     List<TimeLog> findByTaskIdAndVolunteerId(@Param("taskId") Long taskId, @Param("volunteerId") Long volunteerId);
+
+    @Query(value =
+      "SELECT v.volunteer_id AS volunteerId, v.first_name AS firstName, v.last_name AS lastName, " +
+      "COALESCE(SUM(tl.hours_worked),0) AS totalHours " +
+      "FROM time_logs tl " +
+      "JOIN volunteers v ON tl.volunteer_id = v.volunteer_id " +
+      "WHERE tl.status = 'APPROVED' " +
+      "GROUP BY v.volunteer_id, v.first_name, v.last_name " +
+      "ORDER BY totalHours DESC",
+      nativeQuery = true)
+    List<VolunteerHoursProjection> findApprovedHoursPerVolunteer();
 }

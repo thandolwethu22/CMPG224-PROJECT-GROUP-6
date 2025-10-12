@@ -16,6 +16,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.Optional;
 
+// Add import for VolunteerHoursProjection if it exists in your project
+import com.nwu.csvts.repository.VolunteerHoursProjection;
+
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -35,6 +38,12 @@ public class AdminController {
         this.taskService = taskService;
     }
 
+    @GetMapping("/admin/hours-summary")
+    public String hoursSummary(Model model) {
+        List<VolunteerHoursProjection> hours = timeLogService.getTotalHoursPerVolunteer();
+        model.addAttribute("hours", hours);
+        return "admin/hours-summary";
+    }
     // Time Approval Management
     // Duplicate method removed to resolve compile error.
     // If you need to keep the functionality, ensure only one method with the signature:
