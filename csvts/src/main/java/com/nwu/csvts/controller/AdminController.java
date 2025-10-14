@@ -7,6 +7,8 @@ import com.nwu.csvts.service.VolunteerService;
 import com.nwu.csvts.service.TimeLogService;
 import com.nwu.csvts.service.ReportService;
 import com.nwu.csvts.service.TaskService;
+import com.nwu.csvts.service.DashboardService;
+import com.nwu.csvts.service.DashboardService.AdminDashboardData;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,9 +18,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.Optional;
 
-// Add import for VolunteerHoursProjection if it exists in your project
-import com.nwu.csvts.repository.VolunteerHoursProjection;
-
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -27,58 +26,45 @@ public class AdminController {
     private final TimeLogService timeLogService;
     private final ReportService reportService;
     private final TaskService taskService;
+    private final DashboardService dashboardService;
     
     public AdminController(VolunteerService volunteerService,
                            TimeLogService timeLogService,
                            ReportService reportService,
-                           TaskService taskService) {
+                           TaskService taskService,
+                           DashboardService dashboardService) {
         this.volunteerService = volunteerService;
         this.timeLogService = timeLogService;
         this.reportService = reportService;
         this.taskService = taskService;
+        this.dashboardService = dashboardService;
     }
 
-    @GetMapping("/admin/hours-summary")
-    public String hoursSummary(Model model) {
-        List<VolunteerHoursProjection> hours = timeLogService.getTotalHoursPerVolunteer();
-        model.addAttribute("hours", hours);
-        return "admin/hours-summary";
-    }
-    // Time Approval Management
-    // Duplicate method removed to resolve compile error.
-    // If you need to keep the functionality, ensure only one method with the signature:
-    // public String timeApprovalManagement(Authentication authentication, Model model)
-    // exists in this class.
-
-    // Admin Dashboard
+    // Admin Dashboard - OPTIMIZED VERSION
     @GetMapping("/dashboard")
     public String adminDashboard(Model model, Authentication authentication) {
         try {
-            Long totalVolunteers = volunteerService.getTotalVolunteersCount();
-            Long activeVolunteers = volunteerService.getActiveVolunteersCount();
-            Double totalHours = timeLogService.getTotalApprovedHours();
-            Long pendingApprovals = timeLogService.getPendingTimeLogsCount();
-            Long totalTasks = taskService.getTotalTaskCount();
-            Long completedTasks = taskService.getTaskCountByStatus("COMPLETED");
+            // Single optimized query for all admin stats
+            AdminDashboardData dashboardData = dashboardService.getAdminDashboardData();
             
-            model.addAttribute("totalVolunteers", totalVolunteers != null ? totalVolunteers : 0);
-            model.addAttribute("activeVolunteers", activeVolunteers != null ? activeVolunteers : 0);
-            model.addAttribute("totalHours", totalHours != null ? totalHours : 0.0);
-            model.addAttribute("pendingApprovals", pendingApprovals != null ? pendingApprovals : 0);
-            model.addAttribute("totalTasks", totalTasks != null ? totalTasks : 0);
-            model.addAttribute("completedTasks", completedTasks != null ? completedTasks : 0);
+            model.addAttribute("totalTasks", dashboardData.totalTasks());
+            model.addAttribute("completedTasks", dashboardData.completedTasks());
+            model.addAttribute("totalVolunteers", dashboardData.totalVolunteers());
+            model.addAttribute("activeVolunteers", dashboardData.activeVolunteers());
+            model.addAttribute("totalHours", dashboardData.totalHours());
+            model.addAttribute("pendingApprovals", dashboardData.pendingApprovals());
             model.addAttribute("title", "Admin Dashboard");
             model.addAttribute("role", "ADMIN");
             model.addAttribute("username", authentication != null ? authentication.getName() : "admin");
             
         } catch (Exception e) {
             model.addAttribute("error", "Error loading dashboard: " + e.getMessage());
+            model.addAttribute("totalTasks", 0);
+            model.addAttribute("completedTasks", 0);
             model.addAttribute("totalVolunteers", 0);
             model.addAttribute("activeVolunteers", 0);
             model.addAttribute("totalHours", 0.0);
             model.addAttribute("pendingApprovals", 0);
-            model.addAttribute("totalTasks", 0);
-            model.addAttribute("completedTasks", 0);
         }
         return "admin/dashboard";
     }
@@ -204,7 +190,6 @@ public class AdminController {
         }
         return "redirect:/admin/volunteers";
     }
-
 
     // Time Approval - serve pending logs page (matches dashboard link /admin/time-logs/pending)
     @GetMapping("/time-logs/pending")

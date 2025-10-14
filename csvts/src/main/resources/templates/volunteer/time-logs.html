@@ -83,7 +83,7 @@
                                 <tr th:each="log : ${timeLogs}">
                                     <td th:text="${log.task.title}">Task Title</td>
                                     <td>
-                                        <span class="badge bg-primary" th:text="${log.hoursLogged + ' hrs'}">0 hrs</span>
+                                        <span class="badge bg-primary" th:text="${log.hoursWorked + ' hrs'}">0 hrs</span>
                                     </td>
                                     <td th:text="${#temporals.format(log.dateLogged, 'MMM dd, yyyy')}">Date</td>
                                     <td>
@@ -92,11 +92,11 @@
                                     </td>
                                     <td>
                                         <span th:switch="${log.status}" class="badge">
-                                            <span th:case="'PENDING'" class="badge-pending" th:text="${log.status}">PENDING</span>
-                                            <span th:case="'APPROVED'" class="badge-approved" th:text="${log.status}">APPROVED</span>
-                                            <span th:case="'REJECTED'" class="badge-rejected" th:text="${log.status}">REJECTED</span>
-                                            <span th:case="'TRACKING'" class="badge-tracking" th:text="${log.status}">TRACKING</span>
-                                            <span th:case="*" class="bg-secondary" th:text="${log.status}">UNKNOWN</span>
+                                            <span th:case="'PENDING'" class="badge bg-warning" th:text="${log.status}">PENDING</span>
+                                            <span th:case="'APPROVED'" class="badge bg-success" th:text="${log.status}">APPROVED</span>
+                                            <span th:case="'REJECTED'" class="badge bg-danger" th:text="${log.status}">REJECTED</span>
+                                            <span th:case="'TRACKING'" class="badge bg-info" th:text="${log.status}">TRACKING</span>
+                                            <span th:case="*" class="badge bg-secondary" th:text="${log.status}">UNKNOWN</span>
                                         </span>
                                     </td>
                                 </tr>

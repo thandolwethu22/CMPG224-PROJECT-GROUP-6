@@ -2,6 +2,8 @@ package com.nwu.csvts.controller;
 
 import com.nwu.csvts.model.*;
 import com.nwu.csvts.service.*;
+import com.nwu.csvts.service.DashboardService;
+import com.nwu.csvts.service.DashboardService.VolunteerDashboardData;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,20 +29,21 @@ public class VolunteerController {
     private final TaskService taskService;
     private final TimeLogService timeLogService;
     private final AssignmentService assignmentService;
+    private final DashboardService dashboardService;
     
     public VolunteerController(VolunteerService volunteerService, 
                              UserService userService, 
                              TaskService taskService,
                              TimeLogService timeLogService,
-                             AssignmentService assignmentService) {
+                             AssignmentService assignmentService,
+                             DashboardService dashboardService) {
         this.volunteerService = volunteerService;
         this.userService = userService;
         this.taskService = taskService;
         this.timeLogService = timeLogService;
         this.assignmentService = assignmentService;
+        this.dashboardService = dashboardService;
     }
-    
-    // ...existing code...
     
     // View volunteer profile
     @GetMapping("/profile")
@@ -113,7 +116,7 @@ public class VolunteerController {
         }
     }
     
-    // Volunteer Dashboard - FIXED VERSION
+    // Volunteer Dashboard - OPTIMIZED VERSION
     @GetMapping("/dashboard")
     public String volunteerDashboard(Authentication authentication, Model model) {
         try {
@@ -130,40 +133,23 @@ public class VolunteerController {
             if (volunteer.isPresent()) {
                 Volunteer volunteerObj = volunteer.get();
                 
-                // Get task statistics for dashboard - FIXED: Handle null cases
+                // Single optimized query for dashboard statistics
+                VolunteerDashboardData dashboardData = 
+                    dashboardService.getVolunteerDashboardData(volunteerObj.getVolunteerId());
+                
+                // Get assigned tasks for display (this can be kept separate as it's for the UI)
                 List<Task> assignedTasks = taskService.getTasksAssignedToVolunteer(volunteerObj.getVolunteerId());
                 assignedTasks = assignedTasks != null ? assignedTasks : new ArrayList<>();
-                List<Task> openTasks = assignedTasks.stream()
-                        .filter(task -> task != null && "OPEN".equals(task.getStatus()))
-                        .collect(Collectors.toList());
-                List<Task> inProgressTasks = assignedTasks.stream()
-                        .filter(task -> task != null && "IN_PROGRESS".equals(task.getStatus()))
-                        .collect(Collectors.toList());
-                List<Task> completedTasks = assignedTasks.stream()
-                        .filter(task -> task != null && "COMPLETED".equals(task.getStatus()))
-                        .collect(Collectors.toList());
-                
-                // Get total hours - FIXED: use primitive double for safety
-                double totalHours = timeLogService.getTotalApprovedHoursByVolunteer(volunteerObj.getVolunteerId());
-                double pendingHours = timeLogService.getTotalPendingHoursByVolunteer(volunteerObj.getVolunteerId());
-                
-                // Calculate completion rate safely
-                int completionRate = 0;
-                if (!assignedTasks.isEmpty()) {
-                    completionRate = (completedTasks.size() * 100) / assignedTasks.size();
-                }
                 
                 model.addAttribute("volunteer", volunteerObj);
                 model.addAttribute("username", volunteerObj.getFirstName());
                 model.addAttribute("role", "VOLUNTEER");
                 model.addAttribute("title", "Dashboard");
-                model.addAttribute("totalAssignments", assignedTasks.size());
-                model.addAttribute("activeAssignments", inProgressTasks.size());
-                model.addAttribute("completedAssignments", completedTasks.size());
+                model.addAttribute("totalAssignments", dashboardData.totalAssignments());
+                model.addAttribute("activeAssignments", dashboardData.activeAssignments());
+                model.addAttribute("totalHours", dashboardData.totalHours());
+                model.addAttribute("completionRate", String.format("%.1f", dashboardData.completionRate()));
                 model.addAttribute("assignedTasks", assignedTasks);
-                model.addAttribute("totalHours", totalHours);
-                model.addAttribute("pendingHours", pendingHours);
-                model.addAttribute("completionRate", completionRate);
                 
                 return "volunteer/dashboard";
             } else {
